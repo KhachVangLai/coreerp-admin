@@ -5,6 +5,7 @@ import { ProtectedRoute } from '@/components/routing/protected-route'
 import { DashboardRoute } from '@/routes/dashboard-route'
 import { LoginRoute } from '@/routes/login-route'
 import { PlaceholderRoute } from '@/routes/placeholder-route'
+import { UsersRoute } from '@/routes/users-route'
 
 export const router = createBrowserRouter([
   {
@@ -29,6 +30,10 @@ export const router = createBrowserRouter([
           {
             path: 'dashboard',
             element: <DashboardRoute />,
+          },
+          {
+            path: 'users',
+            element: <UsersRoute />,
           },
           {
             path: ':module',
