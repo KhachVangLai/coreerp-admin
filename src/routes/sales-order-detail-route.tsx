@@ -1,9 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Ban, CheckCircle2, PackageCheck } from 'lucide-react'
+import { ArrowLeft, Ban, CheckCircle2, FileText, PackageCheck } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { z } from 'zod'
 
 import {
@@ -16,6 +16,7 @@ import { SalesOrderStatusBadge } from '@/components/sales-orders/sales-order-bad
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/features/auth/use-auth'
+import { generateInvoiceFromSalesOrder } from '@/features/finance/finance-api'
 import {
   cancelSalesOrder,
   confirmSalesOrder,
@@ -51,12 +52,15 @@ type ActionDialog = 'cancel' | 'fulfill' | null
 export function SalesOrderDetailRoute() {
   const { id } = useParams()
   const auth = useAuth()
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [actionDialog, setActionDialog] = useState<ActionDialog>(null)
   const canSalesAction =
     auth.user?.role === 'TENANT_ADMIN' || auth.user?.role === 'SALES'
   const canFulfill =
     auth.user?.role === 'TENANT_ADMIN' || auth.user?.role === 'WAREHOUSE'
+  const canFinanceAction =
+    auth.user?.role === 'TENANT_ADMIN' || auth.user?.role === 'FINANCE'
 
   const orderQuery = useQuery({
     queryKey: ['sales-order', id],
@@ -86,6 +90,12 @@ export function SalesOrderDetailRoute() {
       await invalidateSalesOrderQueries(queryClient, id)
     },
   })
+  const generateInvoiceMutation = useMutation({
+    mutationFn: () => generateInvoiceFromSalesOrder(id ?? ''),
+    onSuccess: (invoice) => {
+      navigate(`/app/invoices/${invoice.id}`)
+    },
+  })
 
   if (orderQuery.isLoading) {
     return <div className="text-sm text-slate-600">Loading sales order...</div>
@@ -108,6 +118,7 @@ export function SalesOrderDetailRoute() {
   const canCancel =
     canSalesAction && (order.status === 'DRAFT' || order.status === 'CONFIRMED')
   const canFulfillOrder = canFulfill && order.status === 'CONFIRMED'
+  const canGenerateInvoice = canFinanceAction && order.status === 'FULFILLED'
 
   return (
     <section className="space-y-5">
@@ -164,6 +175,18 @@ export function SalesOrderDetailRoute() {
               Fulfill
             </Button>
           ) : null}
+          {canGenerateInvoice ? (
+            <Button
+              variant="outline"
+              disabled={generateInvoiceMutation.isPending}
+              onClick={() => generateInvoiceMutation.mutate()}
+            >
+              <FileText className="mr-2 h-4 w-4" aria-hidden="true" />
+              {generateInvoiceMutation.isPending
+                ? 'Generating...'
+                : 'Generate Invoice'}
+            </Button>
+          ) : null}
         </div>
       </div>
 
@@ -171,6 +194,8 @@ export function SalesOrderDetailRoute() {
         error={
           confirmMutation.error
             ? normalizeApiError(confirmMutation.error)
+            : generateInvoiceMutation.error
+              ? normalizeApiError(generateInvoiceMutation.error)
             : undefined
         }
       />
@@ -473,6 +498,14 @@ function friendlyErrorMessage(error: BackendError) {
 
   if (error.code === 'FORBIDDEN') {
     return 'You do not have permission to perform this action.'
+  }
+
+  if (error.code === 'ORDER_NOT_FULFILLED') {
+    return 'Invoice can only be generated from a fulfilled sales order.'
+  }
+
+  if (error.code === 'INVOICE_ALREADY_EXISTS' || error.code === 'CONFLICT') {
+    return 'An invoice already exists for this sales order.'
   }
 
   return error.message

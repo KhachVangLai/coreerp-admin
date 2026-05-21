@@ -4,8 +4,11 @@ import { AppLayout } from '@/components/layout/app-layout'
 import { ProtectedRoute } from '@/components/routing/protected-route'
 import { CustomersRoute } from '@/routes/customers-route'
 import { DashboardRoute } from '@/routes/dashboard-route'
+import { InvoiceDetailRoute } from '@/routes/invoice-detail-route'
+import { InvoicesRoute } from '@/routes/invoices-route'
 import { InventoryRoute } from '@/routes/inventory-route'
 import { LoginRoute } from '@/routes/login-route'
+import { PaymentsRoute } from '@/routes/payments-route'
 import { PlaceholderRoute } from '@/routes/placeholder-route'
 import { ProductsRoute } from '@/routes/products-route'
 import { SalesOrderCreateRoute } from '@/routes/sales-order-create-route'
@@ -69,6 +72,18 @@ export const router = createBrowserRouter([
           {
             path: 'sales-orders/:id',
             element: <SalesOrderDetailRoute />,
+          },
+          {
+            path: 'invoices',
+            element: <InvoicesRoute />,
+          },
+          {
+            path: 'invoices/:id',
+            element: <InvoiceDetailRoute />,
+          },
+          {
+            path: 'payments',
+            element: <PaymentsRoute />,
           },
           {
             path: ':module',
