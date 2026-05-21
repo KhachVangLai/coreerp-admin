@@ -16,7 +16,10 @@ Swagger docs:
 http://localhost:3000/api/docs
 ```
 
-The backend does not need to be running for FE01. The frontend only configures the API client and environment variable for future integration.
+The backend must be running for login and session refresh because the frontend calls:
+
+- `POST /api/v1/auth/login`
+- `GET /api/v1/me`
 
 ## Local setup
 
@@ -43,6 +46,16 @@ Create a local `.env` from `.env.example` when needed:
 
 ```text
 VITE_API_BASE_URL=http://localhost:3000/api/v1
+```
+
+## Demo login
+
+Use a seeded backend demo account:
+
+```text
+Tenant: minh-anh-retail
+Email: sales@minhanh.vn
+Password: 123456
 ```
 
 ## Design system
