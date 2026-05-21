@@ -1,4 +1,4 @@
-import type { ApiDataResponse } from '@/types/auth'
+import type { ApiDataResponse, PaginatedResponse } from '@/types/api'
 
 export const userRoles = [
   'TENANT_ADMIN',
@@ -43,16 +43,5 @@ export type UpdateUserPayload = {
   status?: UserStatus
 }
 
-export type PaginationMeta = {
-  page: number
-  limit: number
-  total: number
-  totalPages: number
-}
-
-export type PaginatedResponse<TData> = {
-  data: TData[]
-  meta: PaginationMeta
-}
-
 export type UserResponse = ApiDataResponse<User>
+export type { PaginatedResponse }

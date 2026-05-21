@@ -2,10 +2,13 @@ import { createBrowserRouter, Navigate } from 'react-router-dom'
 
 import { AppLayout } from '@/components/layout/app-layout'
 import { ProtectedRoute } from '@/components/routing/protected-route'
+import { CustomersRoute } from '@/routes/customers-route'
 import { DashboardRoute } from '@/routes/dashboard-route'
 import { LoginRoute } from '@/routes/login-route'
 import { PlaceholderRoute } from '@/routes/placeholder-route'
+import { ProductsRoute } from '@/routes/products-route'
 import { UsersRoute } from '@/routes/users-route'
+import { WarehousesRoute } from '@/routes/warehouses-route'
 
 export const router = createBrowserRouter([
   {
@@ -34,6 +37,18 @@ export const router = createBrowserRouter([
           {
             path: 'users',
             element: <UsersRoute />,
+          },
+          {
+            path: 'customers',
+            element: <CustomersRoute />,
+          },
+          {
+            path: 'products',
+            element: <ProductsRoute />,
+          },
+          {
+            path: 'warehouses',
+            element: <WarehousesRoute />,
           },
           {
             path: ':module',
