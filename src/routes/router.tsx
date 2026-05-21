@@ -4,6 +4,7 @@ import { AppLayout } from '@/components/layout/app-layout'
 import { ProtectedRoute } from '@/components/routing/protected-route'
 import { CustomersRoute } from '@/routes/customers-route'
 import { DashboardRoute } from '@/routes/dashboard-route'
+import { InventoryRoute } from '@/routes/inventory-route'
 import { LoginRoute } from '@/routes/login-route'
 import { PlaceholderRoute } from '@/routes/placeholder-route'
 import { ProductsRoute } from '@/routes/products-route'
@@ -49,6 +50,10 @@ export const router = createBrowserRouter([
           {
             path: 'warehouses',
             element: <WarehousesRoute />,
+          },
+          {
+            path: 'inventory',
+            element: <InventoryRoute />,
           },
           {
             path: ':module',
