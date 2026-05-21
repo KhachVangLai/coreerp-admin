@@ -8,6 +8,9 @@ import { InventoryRoute } from '@/routes/inventory-route'
 import { LoginRoute } from '@/routes/login-route'
 import { PlaceholderRoute } from '@/routes/placeholder-route'
 import { ProductsRoute } from '@/routes/products-route'
+import { SalesOrderCreateRoute } from '@/routes/sales-order-create-route'
+import { SalesOrderDetailRoute } from '@/routes/sales-order-detail-route'
+import { SalesOrdersRoute } from '@/routes/sales-orders-route'
 import { UsersRoute } from '@/routes/users-route'
 import { WarehousesRoute } from '@/routes/warehouses-route'
 
@@ -54,6 +57,18 @@ export const router = createBrowserRouter([
           {
             path: 'inventory',
             element: <InventoryRoute />,
+          },
+          {
+            path: 'sales-orders',
+            element: <SalesOrdersRoute />,
+          },
+          {
+            path: 'sales-orders/new',
+            element: <SalesOrderCreateRoute />,
+          },
+          {
+            path: 'sales-orders/:id',
+            element: <SalesOrderDetailRoute />,
           },
           {
             path: ':module',
