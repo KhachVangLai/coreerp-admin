@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom'
 
 import { AppLayout } from '@/components/layout/app-layout'
 import { ProtectedRoute } from '@/components/routing/protected-route'
+import { AuditLogsRoute } from '@/routes/audit-logs-route'
 import { CustomersRoute } from '@/routes/customers-route'
 import { DashboardRoute } from '@/routes/dashboard-route'
 import { InvoiceDetailRoute } from '@/routes/invoice-detail-route'
@@ -84,6 +85,10 @@ export const router = createBrowserRouter([
           {
             path: 'payments',
             element: <PaymentsRoute />,
+          },
+          {
+            path: 'audit-logs',
+            element: <AuditLogsRoute />,
           },
           {
             path: ':module',
