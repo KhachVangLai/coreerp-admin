@@ -28,8 +28,8 @@ export function PlaceholderRoute() {
       </div>
 
       <div className="rounded-md border border-dashed border-slate-300 bg-white p-6 text-sm text-slate-600">
-        No business page, mock records, charts, or CRUD workflow has been added
-        in FE02.
+        No business page, mock records, charts, or workflow has been added for
+        this placeholder route.
       </div>
     </section>
   )

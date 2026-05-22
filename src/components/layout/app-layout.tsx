@@ -22,24 +22,41 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/features/auth/use-auth'
 import { cn } from '@/lib/utils'
+import type { UserRole } from '@/types/users'
+import { userRoles } from '@/types/users'
 
 const navigationItems = [
   { label: 'Dashboard', to: '/app/dashboard', icon: LayoutDashboard },
-  { label: 'Users', to: '/app/users', icon: Users, adminOnly: true },
+  { label: 'Users', to: '/app/users', icon: Users, allowedRoles: ['TENANT_ADMIN'] },
   { label: 'Customers', to: '/app/customers', icon: Store },
   { label: 'Products', to: '/app/products', icon: Package },
   { label: 'Warehouses', to: '/app/warehouses', icon: Warehouse },
   { label: 'Inventory', to: '/app/inventory', icon: PackageCheck },
   { label: 'Sales Orders', to: '/app/sales-orders', icon: ClipboardList },
-  { label: 'Invoices', to: '/app/invoices', icon: Receipt },
-  { label: 'Payments', to: '/app/payments', icon: CreditCard },
-  { label: 'Audit Logs', to: '/app/audit-logs', icon: FileText, adminOnly: true },
+  {
+    label: 'Invoices',
+    to: '/app/invoices',
+    icon: Receipt,
+    allowedRoles: ['TENANT_ADMIN', 'FINANCE', 'VIEWER'],
+  },
+  {
+    label: 'Payments',
+    to: '/app/payments',
+    icon: CreditCard,
+    allowedRoles: ['TENANT_ADMIN', 'FINANCE', 'VIEWER'],
+  },
+  {
+    label: 'Audit Logs',
+    to: '/app/audit-logs',
+    icon: FileText,
+    allowedRoles: ['TENANT_ADMIN'],
+  },
 ]
 
 export function AppLayout() {
   const auth = useAuth()
   const user = auth.user
-  const canViewAdminLinks = user?.role === 'TENANT_ADMIN'
+  const role = isUserRole(user?.role) ? user.role : undefined
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-950">
@@ -50,7 +67,11 @@ export function AppLayout() {
         </div>
         <nav className="space-y-1 px-3 py-4" aria-label="Primary">
           {navigationItems
-            .filter((item) => !item.adminOnly || canViewAdminLinks)
+            .filter(
+              (item) =>
+                !item.allowedRoles ||
+                (role ? item.allowedRoles.includes(role) : false),
+            )
             .map((item) => {
               const Icon = item.icon
 
@@ -114,4 +135,8 @@ export function AppLayout() {
       </div>
     </div>
   )
+}
+
+function isUserRole(role: string | undefined): role is UserRole {
+  return userRoles.includes(role as UserRole)
 }
