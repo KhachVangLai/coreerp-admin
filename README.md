@@ -169,6 +169,9 @@ npm run lint
 npm run build
 ```
 
+GitHub Actions runs the same lint and build checks on pushes and pull requests
+to `main`.
+
 No frontend automated test suite is currently present.
 
 ## Design System
@@ -200,13 +203,13 @@ patterns, status badge rules, and workflow UI rules.
 
 - Vite chunk-size warning / route lazy loading.
 - Frontend automated tests are not implemented yet.
-- CI/CD is not implemented yet.
+- CI currently covers frontend lint and build only.
 - Deployment is not implemented yet.
 
 ## Future Improvements
 
 - Add printable invoice view / PDF export if needed for MVP+ demos.
-- Add GitHub Actions CI for lint, build, and test.
+- Add frontend tests to CI when a test suite is introduced.
 - Add frontend E2E tests with Playwright for auth, role gating, and workflow
   actions.
 - Add route-level lazy loading and bundle analysis.
