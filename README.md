@@ -5,8 +5,10 @@ order-to-cash workflow: master data, inventory, sales orders, warehouse
 fulfillment, invoices, payments, audit logs, and a lightweight operational
 dashboard.
 
-The app is intentionally table-first and back-office oriented. It uses existing
-CoreERP API endpoints only; it does not implement a separate reporting module.
+The app is intentionally table-first and back-office oriented for internal ERP
+admin users. It uses existing CoreERP API endpoints only; it does not implement
+a separate reporting module, e-commerce checkout, legal e-invoice workflow,
+payment gateway platform, microservices UI, or 3PL warehouse platform.
 
 ## Backend Dependency
 
@@ -25,13 +27,12 @@ pages.
 - Vite
 - TypeScript
 - TailwindCSS
-- shadcn/ui-style local primitives
+- shadcn/ui
 - React Router
 - TanStack Query
 - React Hook Form
 - Zod
 - Axios
-- Lucide React
 
 ## Implemented Pages
 
@@ -151,6 +152,16 @@ Tenant: `hoang-long-fashion`
 Swagger remains the authoritative API reference during the walkthrough:
 `http://localhost:3000/api/docs`.
 
+Payments in this MVP are manual finance-user payment records. The UI supports
+recording partial and full payments through the backend, but does not implement
+online payment gateways, payment links, provider webhooks, refunds, or payment
+reconciliation.
+
+Invoices in this MVP are invoice data records with issue workflow, line
+snapshots, and payment tracking. The UI does not implement printable invoice
+views, PDF export, legal e-invoice integration, digital signatures, or invoice
+email sending.
+
 ## Testing And Build Commands
 
 ```bash
@@ -170,6 +181,11 @@ patterns, status badge rules, and workflow UI rules.
 - No production deployment is configured yet.
 - No frontend automated tests are present yet.
 - No advanced reporting charts are implemented.
+- No Redis, Kafka, Redpanda, or Outbox workflows are exposed by the MVP.
+- No online payment gateway, payment links, provider webhooks, refunds, or
+  reconciliation are implemented.
+- No printable invoice view, invoice PDF export, legal e-invoice integration,
+  digital signature, or invoice email sending is implemented.
 - No dark mode is implemented.
 - No refresh token or logout API is implemented; logout clears the local access
   token in the frontend.
@@ -180,12 +196,29 @@ patterns, status badge rules, and workflow UI rules.
   loading can be added later if bundle size becomes a priority.
 - Screenshots can be added later; no repository screenshots are included now.
 
+## Technical Debt
+
+- Vite chunk-size warning / route lazy loading.
+- Frontend automated tests are not implemented yet.
+- CI/CD is not implemented yet.
+- Deployment is not implemented yet.
+
 ## Future Improvements
 
-- Add frontend automated tests for auth, role gating, and workflow actions.
+- Add printable invoice view / PDF export if needed for MVP+ demos.
+- Add GitHub Actions CI for lint, build, and test.
+- Add frontend E2E tests with Playwright for auth, role gating, and workflow
+  actions.
 - Add route-level lazy loading and bundle analysis.
-- Add dashboard/report endpoints in the backend if analytics become a product
-  requirement.
-- Add production deployment configuration.
-- Add refresh-token based session renewal.
-- Add dark mode after the light-mode admin experience is stable.
+- Add reports/read models for revenue, unpaid invoices, and low stock if
+  analytics become a product requirement.
+- Add platform tenant onboarding.
+- Add deployment guide and production environment examples.
+- Optionally add a payment gateway adapter and webhook simulation only if a
+  customer-facing payment flow is added.
+- Optionally add an e-invoice provider abstraction only if legal invoice
+  integration is needed.
+- Optionally add Outbox/Kafka/Redpanda only if async integration or a service
+  split becomes necessary.
+- Optionally add Redis/Valkey only for non-critical caching or rate limiting
+  after measured need.

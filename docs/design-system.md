@@ -15,19 +15,15 @@ Use shadcn/ui primitives, TailwindCSS utilities, Lucide React icons, and restrai
 
 ## Navigation structure
 
-The eventual workflow navigation should follow the CoreERP order-to-cash flow:
+The workflow navigation follows the CoreERP order-to-cash flow:
 
 1. Dashboard
 2. Master Data
 3. Inventory
 4. Sales Orders
-5. Stock Reservations
-6. Warehouse Fulfillment
-7. Invoices
-8. Payments
-9. Audit Logs
-
-FE01 only provides placeholders. Do not implement business pages until their task explicitly asks for them.
+5. Invoices
+6. Payments
+7. Audit Logs
 
 ## Status badge colors
 
@@ -83,13 +79,12 @@ Badges should be compact, readable in tables, and consistent across list, detail
 - Show irreversible or audit-relevant actions as explicit confirmations.
 - Keep workflow actions aligned with backend state transitions.
 - Do not invent frontend-only statuses that are not part of the backend contract.
-- Reserve dashboard summaries and workflow metrics for tasks that define real API data.
+- Dashboard summaries and workflow metrics should use existing backend data or dedicated report/read-model endpoints if those are added later.
 
 ## What not to do
 
 - Do not build a landing page.
 - Do not add decorative gradients, oversized hero sections, or stock imagery.
-- Do not hardcode demo business records.
-- Do not call backend APIs during FE01.
-- Do not implement master data, inventory, order, warehouse, invoice, payment, or audit pages before their tasks.
+- Do not hardcode demo business records when backend data is available.
+- Do not claim reports, invoice PDF/e-invoice, online payment gateway, Redis, Kafka, Redpanda, or Outbox flows as implemented in the UI.
 - Do not persist plaintext credentials or tokens outside the agreed auth design.
