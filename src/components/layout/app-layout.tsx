@@ -1,5 +1,4 @@
 import {
-  Bell,
   Building2,
   ClipboardList,
   CreditCard,
@@ -10,7 +9,6 @@ import {
   Package,
   PackageCheck,
   Receipt,
-  Search,
   ShieldCheck,
   Store,
   Users,
@@ -59,8 +57,8 @@ export function AppLayout() {
   const role = isUserRole(user?.role) ? user.role : undefined
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-950">
-      <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-slate-200 bg-white lg:block">
+    <div className="h-screen overflow-hidden bg-slate-50 text-slate-950">
+      <aside className="fixed inset-y-0 left-0 hidden w-64 shrink-0 border-r border-slate-200 bg-white lg:block">
         <div className="flex h-14 items-center gap-2 border-b border-slate-200 px-4">
           <Building2 className="h-5 w-5 text-blue-600" aria-hidden="true" />
           <span className="text-sm font-semibold">CoreERP Admin</span>
@@ -94,28 +92,22 @@ export function AppLayout() {
         </nav>
       </aside>
 
-      <div className="lg:pl-64">
-        <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-slate-200 bg-white px-4">
-          <div className="flex items-center gap-3">
+      <div className="flex h-screen min-w-0 flex-col lg:pl-64">
+        <header className="z-10 flex h-14 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4">
+          <div className="flex min-w-0 items-center gap-3">
             <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Open menu">
               <Menu className="h-5 w-5" aria-hidden="true" />
             </Button>
-            <div>
-              <p className="text-sm font-semibold">{user?.tenantCode}</p>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold">{user?.tenantCode}</p>
               <p className="text-xs text-slate-500">Authenticated workspace</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" aria-label="Search">
-              <Search className="h-5 w-5" aria-hidden="true" />
-            </Button>
-            <Button variant="ghost" size="icon" aria-label="Notifications">
-              <Bell className="h-5 w-5" aria-hidden="true" />
-            </Button>
+          <div className="flex shrink-0 items-center gap-2">
             <div className="hidden items-center gap-3 border-l border-slate-200 pl-3 sm:flex">
-              <div className="text-right">
-                <p className="text-sm font-medium">{user?.fullName}</p>
-                <p className="text-xs text-slate-500">{user?.email}</p>
+              <div className="max-w-56 text-right">
+                <p className="truncate text-sm font-medium">{user?.fullName}</p>
+                <p className="truncate text-xs text-slate-500">{user?.email}</p>
               </div>
               <Badge variant="outline" className="gap-1">
                 <ShieldCheck className="h-3 w-3" aria-hidden="true" />
@@ -129,7 +121,7 @@ export function AppLayout() {
           </div>
         </header>
 
-        <main className="p-4 sm:p-6">
+        <main className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6">
           <Outlet />
         </main>
       </div>

@@ -36,6 +36,13 @@ export type Payment = {
   id: string
   invoiceId: string
   invoiceCode?: string | null
+  invoice?: {
+    id: string
+    invoiceCode: string
+    status?: InvoiceStatus
+    totalAmount?: string
+    paidAmount?: string
+  } | null
   amount: string
   method: PaymentMethod
   referenceNo: string | null
@@ -72,6 +79,7 @@ export type ListInvoicesParams = {
   q?: string
   status?: InvoiceStatus
   customerId?: string
+  salesOrderId?: string
 }
 
 export type GenerateInvoicePayload = Record<string, never>
@@ -85,6 +93,8 @@ export type ListPaymentsParams = {
   limit?: number
   invoiceId?: string
   method?: PaymentMethod
+  fromDate?: string
+  toDate?: string
 }
 
 export type RecordPaymentPayload = {

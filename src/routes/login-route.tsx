@@ -152,15 +152,27 @@ export function LoginRoute() {
           </Button>
         </form>
 
-        <div className="mt-6 rounded-md border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
-          <p className="font-medium text-slate-700">Demo accounts</p>
-          <p className="mt-1">Tenant: minh-anh-retail</p>
-          <ul className="mt-2 space-y-1">
-            <li>admin@minhanh.vn / 123456</li>
-            <li>sales@minhanh.vn / 123456</li>
-            <li>warehouse@minhanh.vn / 123456</li>
-            <li>finance@minhanh.vn / 123456</li>
-            <li>viewer@minhanh.vn / 123456</li>
+        <div className="mt-5 rounded-md border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="font-medium text-slate-700">Demo accounts</p>
+            <p>Tenant: minh-anh-retail</p>
+          </div>
+          <ul className="mt-2 grid gap-1 sm:grid-cols-2">
+            <li className="truncate" title="admin@minhanh.vn / 123456">
+              admin@minhanh.vn / 123456
+            </li>
+            <li className="truncate" title="sales@minhanh.vn / 123456">
+              sales@minhanh.vn / 123456
+            </li>
+            <li className="truncate" title="warehouse@minhanh.vn / 123456">
+              warehouse@minhanh.vn / 123456
+            </li>
+            <li className="truncate" title="finance@minhanh.vn / 123456">
+              finance@minhanh.vn / 123456
+            </li>
+            <li className="truncate" title="viewer@minhanh.vn / 123456">
+              viewer@minhanh.vn / 123456
+            </li>
           </ul>
         </div>
       </section>

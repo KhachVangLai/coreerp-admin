@@ -3,7 +3,25 @@ import { Eye, Plus, Search } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import { PaginationControls, ResourceErrorState } from '@/components/master-data/master-data-ui'
+import {
+  PaginationControls,
+  ResourceErrorState,
+  TableCard,
+  TableColumnHeader,
+  TablePagination,
+  TableScroll,
+  TableState,
+  TruncatedCellText,
+  tableActionCellClassName,
+  tableActionHeaderCellClassName,
+  tableBodyClassName,
+  tableCellClassName,
+  tableClassName,
+  tableHeaderCellClassName,
+  tableHeaderClassName,
+  tableKeyCellClassName,
+  tableKeyHeaderCellClassName,
+} from '@/components/master-data/master-data-ui'
 import { SalesOrderStatusBadge } from '@/components/sales-orders/sales-order-badges'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -154,27 +172,26 @@ export function SalesOrdersRoute() {
         </form>
       </div>
 
-      <div className="overflow-hidden rounded-md border border-slate-200 bg-white">
+      <TableCard>
         {ordersQuery.isLoading ? (
-          <div className="p-6 text-sm text-slate-600">Loading sales orders...</div>
+          <TableState>Loading sales orders...</TableState>
         ) : listError ? (
           <ResourceErrorState error={listError} />
         ) : orders.length === 0 ? (
-          <div className="p-6 text-sm text-slate-600">
-            No sales orders match the current filters.
-          </div>
+          <TableState>No sales orders match the current filters.</TableState>
         ) : (
           <SalesOrdersTable orders={orders} />
         )}
-      </div>
-
-      <PaginationControls
-        isFetching={ordersQuery.isFetching}
-        meta={ordersQuery.data?.meta}
-        page={filters.page}
-        totalLabel="sales orders"
-        onPageChange={(page) => applyFilters({ page })}
-      />
+        <TablePagination>
+          <PaginationControls
+            isFetching={ordersQuery.isFetching}
+            meta={ordersQuery.data?.meta}
+            page={filters.page}
+            totalLabel="sales orders"
+            onPageChange={(page) => applyFilters({ page })}
+          />
+        </TablePagination>
+      </TableCard>
     </section>
   )
 }
@@ -192,41 +209,78 @@ function toListParams(filters: SalesOrderFilters): ListSalesOrdersParams {
 
 function SalesOrdersTable({ orders }: { orders: SalesOrder[] }) {
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-slate-200 text-sm">
-        <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500">
+    <TableScroll>
+      <table className={`${tableClassName} min-w-[1040px]`}>
+        <thead className={tableHeaderClassName}>
           <tr>
-            <th className="px-4 py-3">Order Code</th>
-            <th className="px-4 py-3">Customer</th>
-            <th className="px-4 py-3">Warehouse</th>
-            <th className="px-4 py-3">Status</th>
-            <th className="px-4 py-3 text-right">Total Amount</th>
-            <th className="px-4 py-3">Created At</th>
-            <th className="px-4 py-3 text-right">Actions</th>
+            <th className={tableKeyHeaderCellClassName}>
+              <TableColumnHeader
+                label="Order Code"
+              />
+            </th>
+            <th className={tableHeaderCellClassName}>
+              <TableColumnHeader
+                label="Customer"
+              />
+            </th>
+            <th className={tableHeaderCellClassName}>
+              <TableColumnHeader
+                label="Warehouse"
+              />
+            </th>
+            <th className={tableHeaderCellClassName}>
+              <TableColumnHeader
+                label="Status"
+              />
+            </th>
+            <th className={`${tableHeaderCellClassName} text-right`}>
+              <TableColumnHeader
+                align="right"
+                label="Total Amount"
+              />
+            </th>
+            <th className={tableHeaderCellClassName}>
+              <TableColumnHeader label="Created At" />
+            </th>
+            <th className={tableActionHeaderCellClassName}>
+              <TableColumnHeader align="right" label="Actions" />
+            </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-200 bg-white">
+        <tbody className={tableBodyClassName}>
           {orders.map((order) => (
-            <tr key={order.id} className="hover:bg-slate-50">
-              <td className="whitespace-nowrap px-4 py-3 font-medium text-slate-900">
-                {order.orderCode}
+            <tr key={order.id} className="group hover:bg-slate-50">
+              <td className={`${tableKeyCellClassName} font-medium text-slate-900`}>
+                <TruncatedCellText maxWidth="max-w-[160px]" title={order.orderCode}>
+                  {order.orderCode}
+                </TruncatedCellText>
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-700">
-                {formatSalesOrderCustomer(order)}
+              <td className={`${tableCellClassName} text-slate-700`}>
+                <TruncatedCellText
+                  maxWidth="max-w-[240px]"
+                  title={formatSalesOrderCustomer(order)}
+                >
+                  {formatSalesOrderCustomer(order)}
+                </TruncatedCellText>
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-700">
-                {formatSalesOrderWarehouse(order)}
+              <td className={`${tableCellClassName} text-slate-700`}>
+                <TruncatedCellText
+                  maxWidth="max-w-[240px]"
+                  title={formatSalesOrderWarehouse(order)}
+                >
+                  {formatSalesOrderWarehouse(order)}
+                </TruncatedCellText>
               </td>
-              <td className="whitespace-nowrap px-4 py-3">
+              <td className={`${tableCellClassName} whitespace-nowrap`}>
                 <SalesOrderStatusBadge status={order.status} />
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">
+              <td className={`${tableCellClassName} whitespace-nowrap text-right tabular-nums`}>
                 {formatMoney(order.totalAmount)}
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-600">
+              <td className={`${tableCellClassName} whitespace-nowrap text-slate-600`}>
                 {formatDate(order.createdAt)}
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-right">
+              <td className={tableActionCellClassName}>
                 <Button variant="outline" size="sm" asChild>
                   <Link to={`/app/sales-orders/${order.id}`}>
                     <Eye className="mr-2 h-4 w-4" aria-hidden="true" />
@@ -238,7 +292,7 @@ function SalesOrdersTable({ orders }: { orders: SalesOrder[] }) {
           ))}
         </tbody>
       </table>
-    </div>
+    </TableScroll>
   )
 }
 

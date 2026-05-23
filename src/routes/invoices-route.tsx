@@ -1,23 +1,44 @@
 import { useQuery } from '@tanstack/react-query'
 import { Eye, Search } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { InvoiceStatusBadge } from '@/components/finance/finance-badges'
-import { PaginationControls, ResourceErrorState } from '@/components/master-data/master-data-ui'
+import {
+  PaginationControls,
+  ResourceErrorState,
+  TableCard,
+  TableColumnHeader,
+  TablePagination,
+  TableScroll,
+  TableState,
+  TruncatedCellText,
+  tableActionCellClassName,
+  tableActionHeaderCellClassName,
+  tableBodyClassName,
+  tableCellClassName,
+  tableClassName,
+  tableHeaderCellClassName,
+  tableHeaderClassName,
+  tableKeyCellClassName,
+  tableKeyHeaderCellClassName,
+} from '@/components/master-data/master-data-ui'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { listCustomers } from '@/features/master-data/master-data-api'
 import { listInvoices } from '@/features/finance/finance-api'
+import { listSalesOrders } from '@/features/sales-orders/sales-orders-api'
 import { normalizeApiError } from '@/lib/api-error'
 import { formatDate, formatMoney } from '@/lib/format'
 import type { Customer } from '@/types/master-data'
+import type { SalesOrder } from '@/types/sales-orders'
 import type { Invoice, InvoiceStatus, ListInvoicesParams } from '@/types/finance'
 import { invoiceStatuses } from '@/types/finance'
 
 const defaultLimit = 20
 const allStatusesValue = 'ALL_STATUSES'
 const allCustomersValue = 'ALL_CUSTOMERS'
+const allSalesOrdersValue = 'ALL_SALES_ORDERS'
 
 type InvoiceFilters = {
   page: number
@@ -25,6 +46,7 @@ type InvoiceFilters = {
   q: string
   status: InvoiceStatus | ''
   customerId: string
+  salesOrderId: string
 }
 
 export function InvoicesRoute() {
@@ -34,8 +56,14 @@ export function InvoicesRoute() {
     q: '',
     status: '',
     customerId: '',
+    salesOrderId: '',
   })
   const [searchValue, setSearchValue] = useState('')
+  const [salesOrderLookupValue, setSalesOrderLookupValue] = useState('')
+  const debouncedSalesOrderLookupValue = useDebouncedValue(
+    salesOrderLookupValue,
+    300,
+  )
   const invoicesQuery = useQuery({
     queryKey: ['invoices', filters],
     queryFn: () => listInvoices(toListParams(filters)),
@@ -43,6 +71,15 @@ export function InvoicesRoute() {
   const customersQuery = useQuery({
     queryKey: ['invoice-customers'],
     queryFn: () => listCustomers({ page: 1, limit: 100, status: 'ACTIVE' }),
+  })
+  const salesOrdersQuery = useQuery({
+    queryKey: ['invoice-sales-orders', debouncedSalesOrderLookupValue],
+    queryFn: () =>
+      listSalesOrders({
+        page: 1,
+        limit: 100,
+        q: debouncedSalesOrderLookupValue.trim() || undefined,
+      }),
   })
 
   function applyFilters(nextFilters: Partial<InvoiceFilters>) {
@@ -69,7 +106,7 @@ export function InvoicesRoute() {
 
       <div className="rounded-md border border-slate-200 bg-white p-4">
         <form
-          className="grid gap-3 lg:grid-cols-[minmax(220px,1fr)_180px_220px_auto]"
+          className="grid gap-3 xl:grid-cols-[minmax(220px,1fr)_170px_220px_minmax(260px,0.8fr)_auto]"
           onSubmit={(event) => {
             event.preventDefault()
             applyFilters({ q: searchValue.trim() })
@@ -112,33 +149,44 @@ export function InvoicesRoute() {
             value={filters.customerId || allCustomersValue}
             onChange={(customerId) => applyFilters({ customerId })}
           />
+          <SalesOrderValueHelp
+            lookupValue={salesOrderLookupValue}
+            salesOrders={salesOrdersQuery.data?.data ?? []}
+            value={filters.salesOrderId}
+            onLookupChange={(value) => {
+              setSalesOrderLookupValue(value)
+              if (filters.salesOrderId) {
+                applyFilters({ salesOrderId: '' })
+              }
+            }}
+            onValueChange={(salesOrderId) => applyFilters({ salesOrderId })}
+          />
           <Button type="submit" variant="outline">
             Search
           </Button>
         </form>
       </div>
 
-      <div className="overflow-hidden rounded-md border border-slate-200 bg-white">
+      <TableCard>
         {invoicesQuery.isLoading ? (
-          <div className="p-6 text-sm text-slate-600">Loading invoices...</div>
+          <TableState>Loading invoices...</TableState>
         ) : error ? (
           <ResourceErrorState error={error} />
         ) : invoices.length === 0 ? (
-          <div className="p-6 text-sm text-slate-600">
-            No invoices match the current filters.
-          </div>
+          <TableState>No invoices match the current filters.</TableState>
         ) : (
           <InvoicesTable invoices={invoices} />
         )}
-      </div>
-
-      <PaginationControls
-        isFetching={invoicesQuery.isFetching}
-        meta={invoicesQuery.data?.meta}
-        page={filters.page}
-        totalLabel="invoices"
-        onPageChange={(page) => applyFilters({ page })}
-      />
+        <TablePagination>
+          <PaginationControls
+            isFetching={invoicesQuery.isFetching}
+            meta={invoicesQuery.data?.meta}
+            page={filters.page}
+            totalLabel="invoices"
+            onPageChange={(page) => applyFilters({ page })}
+          />
+        </TablePagination>
+      </TableCard>
     </section>
   )
 }
@@ -150,54 +198,99 @@ function toListParams(filters: InvoiceFilters): ListInvoicesParams {
     q: filters.q || undefined,
     status: filters.status || undefined,
     customerId: filters.customerId || undefined,
+    salesOrderId: filters.salesOrderId || undefined,
   }
 }
 
 function InvoicesTable({ invoices }: { invoices: Invoice[] }) {
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-slate-200 text-sm">
-        <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500">
+    <TableScroll>
+      <table className={`${tableClassName} min-w-[1260px]`}>
+        <thead className={tableHeaderClassName}>
           <tr>
-            <th className="px-4 py-3">Invoice Code</th>
-            <th className="px-4 py-3">Sales Order</th>
-            <th className="px-4 py-3">Customer</th>
-            <th className="px-4 py-3">Status</th>
-            <th className="px-4 py-3 text-right">Total Amount</th>
-            <th className="px-4 py-3 text-right">Paid Amount</th>
-            <th className="px-4 py-3">Issued At</th>
-            <th className="px-4 py-3">Created At</th>
-            <th className="px-4 py-3 text-right">Actions</th>
+            <th className={tableKeyHeaderCellClassName}>
+              <TableColumnHeader
+                label="Invoice Code"
+              />
+            </th>
+            <th className={tableHeaderCellClassName}>
+              <TableColumnHeader
+                label="Sales Order"
+              />
+            </th>
+            <th className={tableHeaderCellClassName}>
+              <TableColumnHeader
+                label="Customer"
+              />
+            </th>
+            <th className={tableHeaderCellClassName}>
+              <TableColumnHeader
+                label="Status"
+              />
+            </th>
+            <th className={`${tableHeaderCellClassName} text-right`}>
+              <TableColumnHeader
+                align="right"
+                label="Total Amount"
+              />
+            </th>
+            <th className={`${tableHeaderCellClassName} text-right`}>
+              <TableColumnHeader
+                align="right"
+                label="Paid Amount"
+              />
+            </th>
+            <th className={tableHeaderCellClassName}>
+              <TableColumnHeader label="Issued At" />
+            </th>
+            <th className={tableHeaderCellClassName}>
+              <TableColumnHeader label="Created At" />
+            </th>
+            <th className={tableActionHeaderCellClassName}>
+              <TableColumnHeader align="right" label="Actions" />
+            </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-200 bg-white">
+        <tbody className={tableBodyClassName}>
           {invoices.map((invoice) => (
-            <tr key={invoice.id} className="hover:bg-slate-50">
-              <td className="whitespace-nowrap px-4 py-3 font-medium text-slate-900">
-                {invoice.invoiceCode}
+            <tr key={invoice.id} className="group hover:bg-slate-50">
+              <td className={`${tableKeyCellClassName} font-medium text-slate-900`}>
+                <TruncatedCellText maxWidth="max-w-[180px]" title={invoice.invoiceCode}>
+                  {invoice.invoiceCode}
+                </TruncatedCellText>
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-700">
-                {invoice.orderCode ?? invoice.salesOrder?.orderCode ?? invoice.salesOrderId}
+              <td className={`${tableCellClassName} text-slate-700`}>
+                <TruncatedCellText
+                  maxWidth="max-w-[180px]"
+                  title={invoice.orderCode ?? invoice.salesOrder?.orderCode ?? invoice.salesOrderId}
+                >
+                  {invoice.orderCode ?? invoice.salesOrder?.orderCode ?? invoice.salesOrderId}
+                </TruncatedCellText>
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-700">
-                {invoice.customerName ?? invoice.customer?.name ?? invoice.customerId ?? '-'}
+              <td className={`${tableCellClassName} text-slate-700`}>
+                <TruncatedCellText
+                  maxWidth="max-w-[240px]"
+                  title={invoice.customerName ?? invoice.customer?.name ?? invoice.customerId ?? undefined}
+                >
+                  {invoice.customerName ?? invoice.customer?.name ?? invoice.customerId ?? '-'}
+                </TruncatedCellText>
               </td>
-              <td className="whitespace-nowrap px-4 py-3">
+              <td className={`${tableCellClassName} whitespace-nowrap`}>
                 <InvoiceStatusBadge status={invoice.status} />
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">
+              <td className={`${tableCellClassName} whitespace-nowrap text-right tabular-nums`}>
                 {formatMoney(invoice.totalAmount)}
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">
+              <td className={`${tableCellClassName} whitespace-nowrap text-right tabular-nums`}>
                 {formatMoney(invoice.paidAmount)}
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-600">
+              <td className={`${tableCellClassName} whitespace-nowrap text-slate-600`}>
                 {invoice.issuedAt ? formatDate(invoice.issuedAt) : '-'}
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-600">
+              <td className={`${tableCellClassName} whitespace-nowrap text-slate-600`}>
                 {formatDate(invoice.createdAt)}
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-right">
+              <td className={tableActionCellClassName}>
                 <Button variant="outline" size="sm" asChild>
                   <Link to={`/app/invoices/${invoice.id}`}>
                     <Eye className="mr-2 h-4 w-4" aria-hidden="true" />
@@ -209,7 +302,7 @@ function InvoicesTable({ invoices }: { invoices: Invoice[] }) {
           ))}
         </tbody>
       </table>
-    </div>
+    </TableScroll>
   )
 }
 
@@ -238,4 +331,60 @@ function CustomerSelect({
       ))}
     </select>
   )
+}
+
+function SalesOrderValueHelp({
+  lookupValue,
+  onLookupChange,
+  onValueChange,
+  salesOrders,
+  value,
+}: {
+  lookupValue: string
+  onLookupChange: (value: string) => void
+  onValueChange: (salesOrderId: string) => void
+  salesOrders: SalesOrder[]
+  value: string
+}) {
+  return (
+    <div className="grid gap-2 sm:grid-cols-[minmax(140px,0.8fr)_minmax(160px,1fr)]">
+      <Input
+        value={lookupValue}
+        onChange={(event) => onLookupChange(event.target.value)}
+        placeholder="Find order code"
+        aria-label="Search sales order value help"
+      />
+      <select
+        className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
+        value={value || allSalesOrdersValue}
+        onChange={(event) =>
+          onValueChange(
+            event.target.value === allSalesOrdersValue ? '' : event.target.value,
+          )
+        }
+        aria-label="Filter by sales order"
+      >
+        <option value={allSalesOrdersValue}>All sales orders</option>
+        {salesOrders.map((order) => (
+          <option key={order.id} value={order.id}>
+            {order.orderCode}
+          </option>
+        ))}
+      </select>
+    </div>
+  )
+}
+
+function useDebouncedValue(value: string, delayMs: number) {
+  const [debouncedValue, setDebouncedValue] = useState(value)
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setDebouncedValue(value)
+    }, delayMs)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [delayMs, value])
+
+  return debouncedValue
 }

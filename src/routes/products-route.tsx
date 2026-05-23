@@ -14,6 +14,20 @@ import {
   FormField,
   PaginationControls,
   ResourceErrorState,
+  TableCard,
+  TablePagination,
+  TableScroll,
+  TableState,
+  TruncatedCellText,
+  tableActionCellClassName,
+  tableActionHeaderCellClassName,
+  tableBodyClassName,
+  tableCellClassName,
+  tableClassName,
+  tableHeaderCellClassName,
+  tableHeaderClassName,
+  tableKeyCellClassName,
+  tableKeyHeaderCellClassName,
 } from '@/components/master-data/master-data-ui'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -201,15 +215,13 @@ export function ProductsRoute() {
         </form>
       </div>
 
-      <div className="overflow-hidden rounded-md border border-slate-200 bg-white">
+      <TableCard>
         {productsQuery.isLoading ? (
-          <div className="p-6 text-sm text-slate-600">Loading products...</div>
+          <TableState>Loading products...</TableState>
         ) : listError ? (
           <ResourceErrorState error={listError} />
         ) : products.length === 0 ? (
-          <div className="p-6 text-sm text-slate-600">
-            No products match the current filters.
-          </div>
+          <TableState>No products match the current filters.</TableState>
         ) : (
           <ProductsTable
             canWrite={canWrite}
@@ -220,15 +232,16 @@ export function ProductsRoute() {
             }}
           />
         )}
-      </div>
-
-      <PaginationControls
-        isFetching={productsQuery.isFetching}
-        meta={productsQuery.data?.meta}
-        page={filters.page}
-        totalLabel="products"
-        onPageChange={(page) => applyFilters({ page })}
-      />
+        <TablePagination>
+          <PaginationControls
+            isFetching={productsQuery.isFetching}
+            meta={productsQuery.data?.meta}
+            page={filters.page}
+            totalLabel="products"
+            onPageChange={(page) => applyFilters({ page })}
+          />
+        </TablePagination>
+      </TableCard>
 
       {isCreateOpen ? (
         <CreateProductDialog
@@ -287,42 +300,48 @@ function ProductsTable({
   onEdit: (product: Product) => void
 }) {
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-slate-200 text-sm">
-        <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500">
+    <TableScroll>
+      <table className={`${tableClassName} min-w-[940px]`}>
+        <thead className={tableHeaderClassName}>
           <tr>
-            <th className="px-4 py-3">SKU</th>
-            <th className="px-4 py-3">Name</th>
-            <th className="px-4 py-3">Unit</th>
-            <th className="px-4 py-3">Base Price</th>
-            <th className="px-4 py-3">Status</th>
-            <th className="px-4 py-3">Created at</th>
-            {canWrite ? <th className="px-4 py-3 text-right">Actions</th> : null}
+            <th className={tableKeyHeaderCellClassName}>SKU</th>
+            <th className={tableHeaderCellClassName}>Name</th>
+            <th className={tableHeaderCellClassName}>Unit</th>
+            <th className={tableHeaderCellClassName}>Base Price</th>
+            <th className={tableHeaderCellClassName}>Status</th>
+            <th className={tableHeaderCellClassName}>Created at</th>
+            {canWrite ? (
+              <th className={tableActionHeaderCellClassName}>Actions</th>
+            ) : null}
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-200 bg-white">
+        <tbody className={tableBodyClassName}>
           {products.map((product) => (
-            <tr key={product.id} className="hover:bg-slate-50">
-              <td className="whitespace-nowrap px-4 py-3 font-medium text-slate-900">
-                {product.sku}
+            <tr key={product.id} className="group hover:bg-slate-50">
+              <td className={`${tableKeyCellClassName} font-medium text-slate-900`}>
+                <TruncatedCellText maxWidth="max-w-[160px]" title={product.sku}>
+                  {product.sku}
+                </TruncatedCellText>
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-700">
-                {product.name}
+              <td className={`${tableCellClassName} text-slate-700`}>
+                <TruncatedCellText maxWidth="max-w-[280px]" title={product.name}>
+                  {product.name}
+                </TruncatedCellText>
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-600">
+              <td className={`${tableCellClassName} whitespace-nowrap text-slate-600`}>
                 {product.unit}
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-600">
+              <td className={`${tableCellClassName} whitespace-nowrap text-slate-600`}>
                 {formatCurrency(product.basePrice)}
               </td>
-              <td className="whitespace-nowrap px-4 py-3">
+              <td className={`${tableCellClassName} whitespace-nowrap`}>
                 <EntityStatusBadge status={product.status} />
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-600">
+              <td className={`${tableCellClassName} whitespace-nowrap text-slate-600`}>
                 {formatDate(product.createdAt)}
               </td>
               {canWrite ? (
-                <td className="whitespace-nowrap px-4 py-3 text-right">
+                <td className={tableActionCellClassName}>
                   <Button
                     variant="outline"
                     size="sm"
@@ -337,7 +356,7 @@ function ProductsTable({
           ))}
         </tbody>
       </table>
-    </div>
+    </TableScroll>
   )
 }
 

@@ -92,41 +92,31 @@ export function DashboardRoute() {
   const auditLogs = auditLogsQuery.data?.data ?? []
 
   return (
-    <section className="space-y-6">
-      <div className="rounded-md border border-slate-200 bg-white p-5">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">
+    <section className="space-y-4">
+      <div className="rounded-md border border-slate-200 bg-white p-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="min-w-0">
+            <h1 className="truncate text-xl font-semibold tracking-tight">
               Welcome, {user?.fullName ?? user?.email}
             </h1>
             <p className="mt-1 text-sm text-slate-500">
               CoreERP operational overview
             </p>
-            <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-              <div>
-                <p className="text-xs font-medium uppercase text-slate-500">
-                  Tenant
-                </p>
-                <p className="mt-1 font-semibold text-slate-900">
-                  {user?.tenantCode}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs font-medium uppercase text-slate-500">
-                  User
-                </p>
-                <p className="mt-1 font-semibold text-slate-900">
-                  {user?.fullName ?? '-'}
-                </p>
-                <p className="text-xs text-slate-500">{user?.email}</p>
-              </div>
+            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
+              <span>
+                Tenant:{' '}
+                <span className="font-medium text-slate-800">{user?.tenantCode}</span>
+              </span>
+              <span className="truncate">
+                User: <span className="font-medium text-slate-800">{user?.email}</span>
+              </span>
             </div>
           </div>
           {role ? <UserRoleBadge role={role} /> : null}
         </div>
       </div>
 
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-7">
         <SummaryCard
           label="Customers"
           icon={Store}
@@ -171,8 +161,6 @@ export function DashboardRoute() {
         />
       </section>
 
-      <QuickActions role={role} />
-
       <div className="grid gap-4 xl:grid-cols-2">
         <StatusSnapshot
           title="Sales Order Status"
@@ -195,6 +183,8 @@ export function DashboardRoute() {
           renderBadge={(status) => <InvoiceStatusBadge status={status as InvoiceStatus} />}
         />
       </div>
+
+      <QuickActions role={role} />
 
       <div className="grid gap-4 xl:grid-cols-2">
         <RecentSalesOrdersTable
@@ -237,7 +227,7 @@ function SummaryCard({
   return (
     <Link
       to={to}
-      className="rounded-md border border-slate-200 bg-white p-4 transition-colors hover:border-blue-200 hover:bg-blue-50/30"
+      className="rounded-md border border-slate-200 bg-white p-3 transition-colors hover:border-blue-200 hover:bg-blue-50/30"
     >
       <div className="flex items-center justify-between gap-3">
         <div>
@@ -249,7 +239,7 @@ function SummaryCard({
               {isForbidden ? 'Restricted' : error.code || 'Unavailable'}
             </p>
           ) : (
-            <p className="mt-1 text-2xl font-semibold tabular-nums text-slate-950">
+            <p className="mt-1 text-xl font-semibold tabular-nums text-slate-950">
               {query.data?.meta?.total ?? 0}
             </p>
           )}
@@ -266,13 +256,10 @@ function QuickActions({ role }: { role?: UserRole }) {
   const actions = getQuickActions(role)
 
   return (
-    <section className="rounded-md border border-slate-200 bg-white p-4">
-      <div className="mb-3 flex items-center justify-between gap-3">
+    <section className="rounded-md border border-slate-200 bg-white p-3">
+      <div className="mb-2 flex items-center justify-between gap-3">
         <div>
           <h2 className="text-base font-semibold">Quick Actions</h2>
-          <p className="text-sm text-slate-500">
-            Role-aware shortcuts into existing workflows.
-          </p>
         </div>
       </div>
       <div className="flex flex-wrap gap-2">
@@ -311,12 +298,12 @@ function StatusSnapshot<TStatus extends string>({
   title: string
 }) {
   return (
-    <section className="rounded-md border border-slate-200 bg-white p-4">
+    <section className="rounded-md border border-slate-200 bg-white p-3">
       <div>
         <h2 className="text-base font-semibold">{title}</h2>
-        <p className="text-sm text-slate-500">{description}</p>
+        <p className="text-xs text-slate-500">{description}</p>
       </div>
-      <div className="mt-4 space-y-2">
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
         {isLoading ? (
           <LoadingRows count={5} />
         ) : error ? (
@@ -325,7 +312,7 @@ function StatusSnapshot<TStatus extends string>({
           statuses.map((status) => (
             <div
               key={status}
-              className="flex items-center justify-between gap-3 rounded-md border border-slate-100 px-3 py-2"
+              className="flex min-h-9 items-center justify-between gap-3 rounded-md border border-slate-100 px-3 py-2"
             >
               {renderBadge(status)}
               <span className="font-semibold tabular-nums text-slate-900">
@@ -546,10 +533,10 @@ function SectionHeader({
   to: string
 }) {
   return (
-    <div className="flex items-start justify-between gap-3 border-b border-slate-200 p-4">
+    <div className="flex items-start justify-between gap-3 border-b border-slate-200 p-3">
       <div>
         <h2 className="text-base font-semibold">{title}</h2>
-        <p className="text-sm text-slate-500">{description}</p>
+        <p className="text-xs text-slate-500">{description}</p>
       </div>
       <Button variant="outline" size="sm" asChild>
         <Link to={to}>View all</Link>

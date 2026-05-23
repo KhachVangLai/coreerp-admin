@@ -7,6 +7,20 @@ import {
   DialogFrame,
   PaginationControls,
   ResourceErrorState,
+  TableCard,
+  TablePagination,
+  TableScroll,
+  TableState,
+  TruncatedCellText,
+  tableActionCellClassName,
+  tableActionHeaderCellClassName,
+  tableBodyClassName,
+  tableCellClassName,
+  tableClassName,
+  tableHeaderCellClassName,
+  tableHeaderClassName,
+  tableKeyCellClassName,
+  tableKeyHeaderCellClassName,
 } from '@/components/master-data/master-data-ui'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -150,9 +164,9 @@ export function AuditLogsRoute() {
         </form>
       </div>
 
-      <div className="overflow-hidden rounded-md border border-slate-200 bg-white">
+      <TableCard>
         {auditLogsQuery.isLoading ? (
-          <div className="p-6 text-sm text-slate-600">Loading audit logs...</div>
+          <TableState>Loading audit logs...</TableState>
         ) : error ? (
           error.code === 'FORBIDDEN' ? (
             <ForbiddenAuditLogsState />
@@ -160,21 +174,20 @@ export function AuditLogsRoute() {
             <ResourceErrorState error={error} />
           )
         ) : auditLogs.length === 0 ? (
-          <div className="p-6 text-sm text-slate-600">
-            No audit logs match the current filters.
-          </div>
+          <TableState>No audit logs match the current filters.</TableState>
         ) : (
           <AuditLogsTable auditLogs={auditLogs} onViewDetails={setSelectedLog} />
         )}
-      </div>
-
-      <PaginationControls
-        isFetching={auditLogsQuery.isFetching}
-        meta={auditLogsQuery.data?.meta}
-        page={filters.page}
-        totalLabel="audit logs"
-        onPageChange={(page) => applyFilters({ page })}
-      />
+        <TablePagination>
+          <PaginationControls
+            isFetching={auditLogsQuery.isFetching}
+            meta={auditLogsQuery.data?.meta}
+            page={filters.page}
+            totalLabel="audit logs"
+            onPageChange={(page) => applyFilters({ page })}
+          />
+        </TablePagination>
+      </TableCard>
 
       {selectedLog ? (
         <AuditLogDetailsDialog
@@ -205,41 +218,55 @@ function AuditLogsTable({
   onViewDetails: (auditLog: AuditLog) => void
 }) {
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-slate-200 text-sm">
-        <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500">
+    <TableScroll>
+      <table className={`${tableClassName} min-w-[1120px]`}>
+        <thead className={tableHeaderClassName}>
           <tr>
-            <th className="px-4 py-3">Created At</th>
-            <th className="px-4 py-3">Action</th>
-            <th className="px-4 py-3">Entity Type</th>
-            <th className="px-4 py-3">Entity ID</th>
-            <th className="px-4 py-3">Actor</th>
-            <th className="px-4 py-3">Metadata</th>
-            <th className="px-4 py-3 text-right">Details</th>
+            <th className={tableKeyHeaderCellClassName}>Created At</th>
+            <th className={tableHeaderCellClassName}>Action</th>
+            <th className={tableHeaderCellClassName}>Entity Type</th>
+            <th className={tableHeaderCellClassName}>Entity ID</th>
+            <th className={tableHeaderCellClassName}>Actor</th>
+            <th className={tableHeaderCellClassName}>Metadata</th>
+            <th className={tableActionHeaderCellClassName}>Details</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-200 bg-white">
+        <tbody className={tableBodyClassName}>
           {auditLogs.map((auditLog) => (
-            <tr key={auditLog.id} className="hover:bg-slate-50">
-              <td className="whitespace-nowrap px-4 py-3 text-slate-600">
+            <tr key={auditLog.id} className="group hover:bg-slate-50">
+              <td className={`${tableKeyCellClassName} whitespace-nowrap text-slate-600`}>
                 {formatDate(auditLog.createdAt)}
               </td>
-              <td className="whitespace-nowrap px-4 py-3">
+              <td className={`${tableCellClassName} whitespace-nowrap`}>
                 <AuditActionBadge action={auditLog.action} />
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-700">
-                {auditLog.entityType ?? '-'}
+              <td className={`${tableCellClassName} text-slate-700`}>
+                <TruncatedCellText maxWidth="max-w-[180px]" title={auditLog.entityType ?? undefined}>
+                  {auditLog.entityType ?? '-'}
+                </TruncatedCellText>
               </td>
-              <td className="max-w-[220px] truncate px-4 py-3 font-mono text-xs text-slate-600">
-                {auditLog.entityId ?? '-'}
+              <td className={`${tableCellClassName} font-mono text-xs text-slate-600`}>
+                <TruncatedCellText maxWidth="max-w-[220px]" title={auditLog.entityId ?? undefined}>
+                  {auditLog.entityId ?? '-'}
+                </TruncatedCellText>
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-700">
-                {auditLog.actorEmail ?? auditLog.actorUserId ?? 'System'}
+              <td className={`${tableCellClassName} text-slate-700`}>
+                <TruncatedCellText
+                  maxWidth="max-w-[240px]"
+                  title={auditLog.actorEmail ?? auditLog.actorUserId ?? undefined}
+                >
+                  {auditLog.actorEmail ?? auditLog.actorUserId ?? 'System'}
+                </TruncatedCellText>
               </td>
-              <td className="max-w-[280px] truncate px-4 py-3 text-slate-600">
-                {metadataSummary(auditLog.metadata)}
+              <td className={`${tableCellClassName} text-slate-600`}>
+                <TruncatedCellText
+                  maxWidth="max-w-[300px]"
+                  title={metadataSummary(auditLog.metadata)}
+                >
+                  {metadataSummary(auditLog.metadata)}
+                </TruncatedCellText>
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-right">
+              <td className={tableActionCellClassName}>
                 <Button
                   variant="outline"
                   size="sm"
@@ -253,7 +280,7 @@ function AuditLogsTable({
           ))}
         </tbody>
       </table>
-    </div>
+    </TableScroll>
   )
 }
 

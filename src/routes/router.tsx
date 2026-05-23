@@ -1,22 +1,63 @@
+import { lazy, Suspense, type ComponentType } from 'react'
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 
 import { AppLayout } from '@/components/layout/app-layout'
 import { ProtectedRoute } from '@/components/routing/protected-route'
-import { AuditLogsRoute } from '@/routes/audit-logs-route'
-import { CustomersRoute } from '@/routes/customers-route'
-import { DashboardRoute } from '@/routes/dashboard-route'
-import { InvoiceDetailRoute } from '@/routes/invoice-detail-route'
-import { InvoicesRoute } from '@/routes/invoices-route'
-import { InventoryRoute } from '@/routes/inventory-route'
-import { LoginRoute } from '@/routes/login-route'
-import { PaymentsRoute } from '@/routes/payments-route'
-import { PlaceholderRoute } from '@/routes/placeholder-route'
-import { ProductsRoute } from '@/routes/products-route'
-import { SalesOrderCreateRoute } from '@/routes/sales-order-create-route'
-import { SalesOrderDetailRoute } from '@/routes/sales-order-detail-route'
-import { SalesOrdersRoute } from '@/routes/sales-orders-route'
-import { UsersRoute } from '@/routes/users-route'
-import { WarehousesRoute } from '@/routes/warehouses-route'
+
+const LoginRoute = lazyRoute(() => import('@/routes/login-route'), 'LoginRoute')
+const DashboardRoute = lazyRoute(
+  () => import('@/routes/dashboard-route'),
+  'DashboardRoute',
+)
+const UsersRoute = lazyRoute(() => import('@/routes/users-route'), 'UsersRoute')
+const CustomersRoute = lazyRoute(
+  () => import('@/routes/customers-route'),
+  'CustomersRoute',
+)
+const ProductsRoute = lazyRoute(
+  () => import('@/routes/products-route'),
+  'ProductsRoute',
+)
+const WarehousesRoute = lazyRoute(
+  () => import('@/routes/warehouses-route'),
+  'WarehousesRoute',
+)
+const InventoryRoute = lazyRoute(
+  () => import('@/routes/inventory-route'),
+  'InventoryRoute',
+)
+const SalesOrdersRoute = lazyRoute(
+  () => import('@/routes/sales-orders-route'),
+  'SalesOrdersRoute',
+)
+const SalesOrderCreateRoute = lazyRoute(
+  () => import('@/routes/sales-order-create-route'),
+  'SalesOrderCreateRoute',
+)
+const SalesOrderDetailRoute = lazyRoute(
+  () => import('@/routes/sales-order-detail-route'),
+  'SalesOrderDetailRoute',
+)
+const InvoicesRoute = lazyRoute(
+  () => import('@/routes/invoices-route'),
+  'InvoicesRoute',
+)
+const InvoiceDetailRoute = lazyRoute(
+  () => import('@/routes/invoice-detail-route'),
+  'InvoiceDetailRoute',
+)
+const PaymentsRoute = lazyRoute(
+  () => import('@/routes/payments-route'),
+  'PaymentsRoute',
+)
+const AuditLogsRoute = lazyRoute(
+  () => import('@/routes/audit-logs-route'),
+  'AuditLogsRoute',
+)
+const PlaceholderRoute = lazyRoute(
+  () => import('@/routes/placeholder-route'),
+  'PlaceholderRoute',
+)
 
 export const router = createBrowserRouter([
   {
@@ -25,7 +66,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/login',
-    element: <LoginRoute />,
+    element: routeElement(LoginRoute),
   },
   {
     element: <ProtectedRoute />,
@@ -40,62 +81,85 @@ export const router = createBrowserRouter([
           },
           {
             path: 'dashboard',
-            element: <DashboardRoute />,
+            element: routeElement(DashboardRoute),
           },
           {
             path: 'users',
-            element: <UsersRoute />,
+            element: routeElement(UsersRoute),
           },
           {
             path: 'customers',
-            element: <CustomersRoute />,
+            element: routeElement(CustomersRoute),
           },
           {
             path: 'products',
-            element: <ProductsRoute />,
+            element: routeElement(ProductsRoute),
           },
           {
             path: 'warehouses',
-            element: <WarehousesRoute />,
+            element: routeElement(WarehousesRoute),
           },
           {
             path: 'inventory',
-            element: <InventoryRoute />,
+            element: routeElement(InventoryRoute),
           },
           {
             path: 'sales-orders',
-            element: <SalesOrdersRoute />,
+            element: routeElement(SalesOrdersRoute),
           },
           {
             path: 'sales-orders/new',
-            element: <SalesOrderCreateRoute />,
+            element: routeElement(SalesOrderCreateRoute),
           },
           {
             path: 'sales-orders/:id',
-            element: <SalesOrderDetailRoute />,
+            element: routeElement(SalesOrderDetailRoute),
           },
           {
             path: 'invoices',
-            element: <InvoicesRoute />,
+            element: routeElement(InvoicesRoute),
           },
           {
             path: 'invoices/:id',
-            element: <InvoiceDetailRoute />,
+            element: routeElement(InvoiceDetailRoute),
           },
           {
             path: 'payments',
-            element: <PaymentsRoute />,
+            element: routeElement(PaymentsRoute),
           },
           {
             path: 'audit-logs',
-            element: <AuditLogsRoute />,
+            element: routeElement(AuditLogsRoute),
           },
           {
             path: ':module',
-            element: <PlaceholderRoute />,
+            element: routeElement(PlaceholderRoute),
           },
         ],
       },
     ],
   },
 ])
+
+function lazyRoute<T extends Record<string, ComponentType>>(
+  importer: () => Promise<T>,
+  exportName: keyof T,
+) {
+  return lazy(async () => ({
+    default: (await importer())[exportName],
+  }))
+}
+
+function routeElement(Route: ComponentType) {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-48 items-center justify-center text-sm text-slate-500">
+          Loading workspace...
+        </div>
+      }
+    >
+      <Route />
+    </Suspense>
+  )
+}

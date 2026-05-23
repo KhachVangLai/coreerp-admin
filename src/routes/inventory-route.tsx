@@ -12,6 +12,18 @@ import {
   FormField,
   PaginationControls,
   ResourceErrorState,
+  TableCard,
+  TablePagination,
+  TableScroll,
+  TableState,
+  TruncatedCellText,
+  tableBodyClassName,
+  tableCellClassName,
+  tableClassName,
+  tableHeaderCellClassName,
+  tableHeaderClassName,
+  tableKeyCellClassName,
+  tableKeyHeaderCellClassName,
 } from '@/components/master-data/master-data-ui'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -375,27 +387,26 @@ function StockItemsTab({
         onFiltersChange={onFiltersChange}
       />
 
-      <div className="overflow-hidden rounded-md border border-slate-200 bg-white">
+      <TableCard>
         {isLoading ? (
-          <div className="p-6 text-sm text-slate-600">Loading stock items...</div>
+          <TableState>Loading stock items...</TableState>
         ) : stockItemsError ? (
           <ResourceErrorState error={stockItemsError} />
         ) : stockItems.length === 0 ? (
-          <div className="p-6 text-sm text-slate-600">
-            No stock items match the current filters.
-          </div>
+          <TableState>No stock items match the current filters.</TableState>
         ) : (
           <StockItemsTable stockItems={stockItems} />
         )}
-      </div>
-
-      <PaginationControls
-        isFetching={isFetching}
-        meta={meta}
-        page={filters.page}
-        totalLabel="stock items"
-        onPageChange={(page) => onFiltersChange({ page })}
-      />
+        <TablePagination>
+          <PaginationControls
+            isFetching={isFetching}
+            meta={meta}
+            page={filters.page}
+            totalLabel="stock items"
+            onPageChange={(page) => onFiltersChange({ page })}
+          />
+        </TablePagination>
+      </TableCard>
     </div>
   )
 }
@@ -457,27 +468,26 @@ function MovementsTab({
         </select>
       </InventoryFilters>
 
-      <div className="overflow-hidden rounded-md border border-slate-200 bg-white">
+      <TableCard>
         {isLoading ? (
-          <div className="p-6 text-sm text-slate-600">Loading movements...</div>
+          <TableState>Loading movements...</TableState>
         ) : movementsError ? (
           <ResourceErrorState error={movementsError} />
         ) : movements.length === 0 ? (
-          <div className="p-6 text-sm text-slate-600">
-            No stock movements match the current filters.
-          </div>
+          <TableState>No stock movements match the current filters.</TableState>
         ) : (
           <MovementsTable movements={movements} />
         )}
-      </div>
-
-      <PaginationControls
-        isFetching={isFetching}
-        meta={meta}
-        page={filters.page}
-        totalLabel="movements"
-        onPageChange={(page) => onFiltersChange({ page })}
-      />
+        <TablePagination>
+          <PaginationControls
+            isFetching={isFetching}
+            meta={meta}
+            page={filters.page}
+            totalLabel="movements"
+            onPageChange={(page) => onFiltersChange({ page })}
+          />
+        </TablePagination>
+      </TableCard>
     </div>
   )
 }
@@ -550,43 +560,52 @@ function InventoryFilters({
 
 function StockItemsTable({ stockItems }: { stockItems: StockItem[] }) {
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-slate-200 text-sm">
-        <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500">
+    <TableScroll>
+      <table className={`${tableClassName} min-w-[980px]`}>
+        <thead className={tableHeaderClassName}>
           <tr>
-            <th className="px-4 py-3">Warehouse</th>
-            <th className="px-4 py-3">SKU</th>
-            <th className="px-4 py-3">Product</th>
-            <th className="px-4 py-3">Unit</th>
-            <th className="px-4 py-3 text-right">On Hand</th>
-            <th className="px-4 py-3 text-right">Reserved</th>
-            <th className="px-4 py-3 text-right">Available</th>
+            <th className={tableKeyHeaderCellClassName}>Warehouse</th>
+            <th className={tableHeaderCellClassName}>SKU</th>
+            <th className={tableHeaderCellClassName}>Product</th>
+            <th className={tableHeaderCellClassName}>Unit</th>
+            <th className={`${tableHeaderCellClassName} text-right`}>On Hand</th>
+            <th className={`${tableHeaderCellClassName} text-right`}>Reserved</th>
+            <th className={`${tableHeaderCellClassName} text-right`}>Available</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-200 bg-white">
+        <tbody className={tableBodyClassName}>
           {stockItems.map((item) => (
-            <tr key={item.id} className="hover:bg-slate-50">
-              <td className="whitespace-nowrap px-4 py-3 text-slate-700">
-                <span className="font-medium text-slate-900">
-                  {item.warehouseCode}
-                </span>{' '}
-                {item.warehouseName}
+            <tr key={item.id} className="group hover:bg-slate-50">
+              <td className={`${tableKeyCellClassName} text-slate-700`}>
+                <TruncatedCellText
+                  maxWidth="max-w-[260px]"
+                  title={`${item.warehouseCode} ${item.warehouseName}`}
+                >
+                  <span className="font-medium text-slate-900">
+                    {item.warehouseCode}
+                  </span>{' '}
+                  {item.warehouseName}
+                </TruncatedCellText>
               </td>
-              <td className="whitespace-nowrap px-4 py-3 font-medium text-slate-900">
-                {item.sku}
+              <td className={`${tableCellClassName} font-medium text-slate-900`}>
+                <TruncatedCellText maxWidth="max-w-[160px]" title={item.sku}>
+                  {item.sku}
+                </TruncatedCellText>
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-700">
-                {item.productName}
+              <td className={`${tableCellClassName} text-slate-700`}>
+                <TruncatedCellText maxWidth="max-w-[280px]" title={item.productName}>
+                  {item.productName}
+                </TruncatedCellText>
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-600">
+              <td className={`${tableCellClassName} whitespace-nowrap text-slate-600`}>
                 {item.unit}
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">
+              <td className={`${tableCellClassName} whitespace-nowrap text-right tabular-nums`}>
                 {item.quantityOnHand}
               </td>
               <td
                 className={cn(
-                  'whitespace-nowrap px-4 py-3 text-right tabular-nums',
+                  `${tableCellClassName} whitespace-nowrap text-right tabular-nums`,
                   item.quantityReserved > 0
                     ? 'font-semibold text-blue-700'
                     : 'text-slate-600',
@@ -596,7 +615,7 @@ function StockItemsTable({ stockItems }: { stockItems: StockItem[] }) {
               </td>
               <td
                 className={cn(
-                  'whitespace-nowrap px-4 py-3 text-right tabular-nums',
+                  `${tableCellClassName} whitespace-nowrap text-right tabular-nums`,
                   item.availableQuantity === 0
                     ? 'font-semibold text-red-700'
                     : 'font-semibold text-green-700',
@@ -608,74 +627,102 @@ function StockItemsTable({ stockItems }: { stockItems: StockItem[] }) {
           ))}
         </tbody>
       </table>
-    </div>
+    </TableScroll>
   )
 }
 
 function MovementsTable({ movements }: { movements: StockMovement[] }) {
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-slate-200 text-sm">
-        <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500">
+    <TableScroll>
+      <table className={`${tableClassName} min-w-[1500px]`}>
+        <thead className={tableHeaderClassName}>
           <tr>
-            <th className="px-4 py-3">Created At</th>
-            <th className="px-4 py-3">Type</th>
-            <th className="px-4 py-3">Warehouse</th>
-            <th className="px-4 py-3">Product/SKU</th>
-            <th className="px-4 py-3 text-right">Quantity</th>
-            <th className="px-4 py-3 text-right">Before On Hand</th>
-            <th className="px-4 py-3 text-right">After On Hand</th>
-            <th className="px-4 py-3 text-right">Before Reserved</th>
-            <th className="px-4 py-3 text-right">After Reserved</th>
-            <th className="px-4 py-3">Reference</th>
-            <th className="px-4 py-3">Note</th>
+            <th className={tableKeyHeaderCellClassName}>Created At</th>
+            <th className={tableHeaderCellClassName}>Type</th>
+            <th className={tableHeaderCellClassName}>Warehouse</th>
+            <th className={tableHeaderCellClassName}>Product/SKU</th>
+            <th className={`${tableHeaderCellClassName} text-right`}>Quantity</th>
+            <th className={`${tableHeaderCellClassName} text-right`}>Before On Hand</th>
+            <th className={`${tableHeaderCellClassName} text-right`}>After On Hand</th>
+            <th className={`${tableHeaderCellClassName} text-right`}>Before Reserved</th>
+            <th className={`${tableHeaderCellClassName} text-right`}>After Reserved</th>
+            <th className={tableHeaderCellClassName}>Reference</th>
+            <th className={tableHeaderCellClassName}>Note</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-200 bg-white">
+        <tbody className={tableBodyClassName}>
           {movements.map((movement) => (
-            <tr key={movement.id} className="hover:bg-slate-50">
-              <td className="whitespace-nowrap px-4 py-3 text-slate-600">
+            <tr key={movement.id} className="group hover:bg-slate-50">
+              <td className={`${tableKeyCellClassName} whitespace-nowrap text-slate-600`}>
                 {formatDate(movement.createdAt)}
               </td>
-              <td className="whitespace-nowrap px-4 py-3">
+              <td className={`${tableCellClassName} whitespace-nowrap`}>
                 <MovementTypeBadge type={movement.type} />
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-700">
-                {movement.warehouseCode
-                  ? `${movement.warehouseCode} ${movement.warehouseName ?? ''}`
-                  : movement.warehouseId}
+              <td className={`${tableCellClassName} text-slate-700`}>
+                <TruncatedCellText
+                  maxWidth="max-w-[260px]"
+                  title={
+                    movement.warehouseCode
+                      ? `${movement.warehouseCode} ${movement.warehouseName ?? ''}`
+                      : movement.warehouseId
+                  }
+                >
+                  {movement.warehouseCode
+                    ? `${movement.warehouseCode} ${movement.warehouseName ?? ''}`
+                    : movement.warehouseId}
+                </TruncatedCellText>
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-700">
-                {movement.sku
-                  ? `${movement.sku} - ${movement.productName ?? ''}`
-                  : movement.productId}
+              <td className={`${tableCellClassName} text-slate-700`}>
+                <TruncatedCellText
+                  maxWidth="max-w-[300px]"
+                  title={
+                    movement.sku
+                      ? `${movement.sku} - ${movement.productName ?? ''}`
+                      : movement.productId
+                  }
+                >
+                  {movement.sku
+                    ? `${movement.sku} - ${movement.productName ?? ''}`
+                    : movement.productId}
+                </TruncatedCellText>
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">
+              <td className={`${tableCellClassName} whitespace-nowrap text-right tabular-nums`}>
                 {movement.quantity}
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">
+              <td className={`${tableCellClassName} whitespace-nowrap text-right tabular-nums`}>
                 {movement.beforeOnHand}
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">
+              <td className={`${tableCellClassName} whitespace-nowrap text-right tabular-nums`}>
                 {movement.afterOnHand}
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">
+              <td className={`${tableCellClassName} whitespace-nowrap text-right tabular-nums`}>
                 {movement.beforeReserved}
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">
+              <td className={`${tableCellClassName} whitespace-nowrap text-right tabular-nums`}>
                 {movement.afterReserved}
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-600">
-                {formatReference(movement)}
+              <td className={`${tableCellClassName} text-slate-600`}>
+                <TruncatedCellText
+                  maxWidth="max-w-[220px]"
+                  title={formatReference(movement)}
+                >
+                  {formatReference(movement)}
+                </TruncatedCellText>
               </td>
-              <td className="min-w-48 px-4 py-3 text-slate-600">
-                {movement.note || '-'}
+              <td className={`${tableCellClassName} text-slate-600`}>
+                <TruncatedCellText
+                  maxWidth="max-w-[260px]"
+                  title={movement.note ?? undefined}
+                >
+                  {movement.note || '-'}
+                </TruncatedCellText>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
-    </div>
+    </TableScroll>
   )
 }
 

@@ -8,6 +8,22 @@ import { z } from 'zod'
 import { UserRoleBadge, UserStatusBadge } from '@/components/users/user-badges'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import {
+  TableCard,
+  TablePagination,
+  TableScroll,
+  TableState,
+  TruncatedCellText,
+  tableActionCellClassName,
+  tableActionHeaderCellClassName,
+  tableBodyClassName,
+  tableCellClassName,
+  tableClassName,
+  tableHeaderCellClassName,
+  tableHeaderClassName,
+  tableKeyCellClassName,
+  tableKeyHeaderCellClassName,
+} from '@/components/master-data/master-data-ui'
 import { createUser, listUsers, updateUser } from '@/features/users/users-api'
 import { useAuth } from '@/features/auth/use-auth'
 import { normalizeApiError, type BackendError } from '@/lib/api-error'
@@ -206,52 +222,51 @@ export function UsersRoute() {
         </form>
       </div>
 
-      <div className="overflow-hidden rounded-md border border-slate-200 bg-white">
+      <TableCard>
         {usersQuery.isLoading ? (
-          <div className="p-6 text-sm text-slate-600">Loading users...</div>
+          <TableState>Loading users...</TableState>
         ) : listError ? (
           <UsersErrorState error={listError} />
         ) : users.length === 0 ? (
-          <div className="p-6 text-sm text-slate-600">
-            No users match the current filters.
-          </div>
+          <TableState>No users match the current filters.</TableState>
         ) : (
-        <UsersTable
-          users={users}
-          onEdit={(user) => {
-            updateMutation.reset()
-            setEditingUser(user)
-          }}
-        />
+          <UsersTable
+            users={users}
+            onEdit={(user) => {
+              updateMutation.reset()
+              setEditingUser(user)
+            }}
+          />
         )}
-      </div>
-
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-slate-500">
-          {meta ? `${meta.total} users total` : 'Users total unavailable'}
-        </p>
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={currentPage <= 1 || usersQuery.isFetching}
-            onClick={() => applyFilters({ page: currentPage - 1 })}
-          >
-            Previous
-          </Button>
-          <span className="text-sm text-slate-600">
-            Page {currentPage} of {Math.max(totalPages, 1)}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={currentPage >= totalPages || usersQuery.isFetching}
-            onClick={() => applyFilters({ page: currentPage + 1 })}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
+        <TablePagination>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-slate-500">
+              {meta ? `${meta.total} users total` : 'Users total unavailable'}
+            </p>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage <= 1 || usersQuery.isFetching}
+                onClick={() => applyFilters({ page: currentPage - 1 })}
+              >
+                Previous
+              </Button>
+              <span className="text-sm text-slate-600">
+                Page {currentPage} of {Math.max(totalPages, 1)}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage >= totalPages || usersQuery.isFetching}
+                onClick={() => applyFilters({ page: currentPage + 1 })}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        </TablePagination>
+      </TableCard>
 
       {isCreateOpen ? (
         <CreateUserDialog
@@ -308,37 +323,41 @@ type UsersTableProps = {
 
 function UsersTable({ users, onEdit }: UsersTableProps) {
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-slate-200 text-sm">
-        <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500">
+    <TableScroll>
+      <table className={`${tableClassName} min-w-[860px]`}>
+        <thead className={tableHeaderClassName}>
           <tr>
-            <th className="px-4 py-3">Full name</th>
-            <th className="px-4 py-3">Email</th>
-            <th className="px-4 py-3">Role</th>
-            <th className="px-4 py-3">Status</th>
-            <th className="px-4 py-3">Created at</th>
-            <th className="px-4 py-3 text-right">Actions</th>
+            <th className={tableKeyHeaderCellClassName}>Full name</th>
+            <th className={tableHeaderCellClassName}>Email</th>
+            <th className={tableHeaderCellClassName}>Role</th>
+            <th className={tableHeaderCellClassName}>Status</th>
+            <th className={tableHeaderCellClassName}>Created at</th>
+            <th className={tableActionHeaderCellClassName}>Actions</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-200 bg-white">
+        <tbody className={tableBodyClassName}>
           {users.map((user) => (
-            <tr key={user.id} className="hover:bg-slate-50">
-              <td className="whitespace-nowrap px-4 py-3 font-medium text-slate-900">
-                {user.fullName}
+            <tr key={user.id} className="group hover:bg-slate-50">
+              <td className={`${tableKeyCellClassName} font-medium text-slate-900`}>
+                <TruncatedCellText title={user.fullName}>
+                  {user.fullName}
+                </TruncatedCellText>
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-600">
-                {user.email}
+              <td className={`${tableCellClassName} text-slate-600`}>
+                <TruncatedCellText maxWidth="max-w-[260px]" title={user.email}>
+                  {user.email}
+                </TruncatedCellText>
               </td>
-              <td className="whitespace-nowrap px-4 py-3">
+              <td className={`${tableCellClassName} whitespace-nowrap`}>
                 <UserRoleBadge role={user.role} />
               </td>
-              <td className="whitespace-nowrap px-4 py-3">
+              <td className={`${tableCellClassName} whitespace-nowrap`}>
                 <UserStatusBadge status={user.status} />
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-600">
+              <td className={`${tableCellClassName} whitespace-nowrap text-slate-600`}>
                 {formatDate(user.createdAt)}
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-right">
+              <td className={tableActionCellClassName}>
                 <Button variant="outline" size="sm" onClick={() => onEdit(user)}>
                   <Edit className="mr-2 h-4 w-4" aria-hidden="true" />
                   Edit
@@ -348,7 +367,7 @@ function UsersTable({ users, onEdit }: UsersTableProps) {
           ))}
         </tbody>
       </table>
-    </div>
+    </TableScroll>
   )
 }
 

@@ -1,32 +1,71 @@
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { PaymentMethodBadge } from '@/components/finance/finance-badges'
-import { PaginationControls, ResourceErrorState } from '@/components/master-data/master-data-ui'
-import { listPayments } from '@/features/finance/finance-api'
+import {
+  PaginationControls,
+  ResourceErrorState,
+  TableCard,
+  TableColumnHeader,
+  TablePagination,
+  TableScroll,
+  TableState,
+  TruncatedCellText,
+  tableBodyClassName,
+  tableCellClassName,
+  tableClassName,
+  tableHeaderCellClassName,
+  tableHeaderClassName,
+  tableKeyCellClassName,
+  tableKeyHeaderCellClassName,
+} from '@/components/master-data/master-data-ui'
+import { listInvoices, listPayments } from '@/features/finance/finance-api'
 import { normalizeApiError } from '@/lib/api-error'
 import { formatDate, formatMoney } from '@/lib/format'
-import type { ListPaymentsParams, Payment, PaymentMethod } from '@/types/finance'
+import type {
+  Invoice,
+  ListPaymentsParams,
+  Payment,
+  PaymentMethod,
+} from '@/types/finance'
 import { paymentMethods } from '@/types/finance'
 
 const defaultLimit = 20
 const allMethodsValue = 'ALL_METHODS'
+const allInvoicesValue = 'ALL_INVOICES'
 
 type PaymentFilters = {
   page: number
   limit: number
+  invoiceId: string
   method: PaymentMethod | ''
+  fromDate: string
+  toDate: string
 }
 
 export function PaymentsRoute() {
+  const [invoiceLookupValue, setInvoiceLookupValue] = useState('')
+  const debouncedInvoiceLookupValue = useDebouncedValue(invoiceLookupValue, 300)
   const [filters, setFilters] = useState<PaymentFilters>({
     page: 1,
     limit: defaultLimit,
+    invoiceId: '',
     method: '',
+    fromDate: '',
+    toDate: '',
   })
   const paymentsQuery = useQuery({
     queryKey: ['payments', filters],
     queryFn: () => listPayments(toListParams(filters)),
+  })
+  const invoicesQuery = useQuery({
+    queryKey: ['payment-invoices', debouncedInvoiceLookupValue],
+    queryFn: () =>
+      listInvoices({
+        page: 1,
+        limit: 100,
+        q: debouncedInvoiceLookupValue.trim() || undefined,
+      }),
   })
   const error = paymentsQuery.error
     ? normalizeApiError(paymentsQuery.error)
@@ -49,48 +88,76 @@ export function PaymentsRoute() {
       </div>
 
       <div className="rounded-md border border-slate-200 bg-white p-4">
-        <select
-          className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
-          value={filters.method || allMethodsValue}
-          onChange={(event) =>
-            applyFilters({
-              method:
-                event.target.value === allMethodsValue
-                  ? ''
-                  : (event.target.value as PaymentMethod),
-            })
-          }
-        >
-          <option value={allMethodsValue}>All methods</option>
-          {paymentMethods.map((method) => (
-            <option key={method} value={method}>
-              {method}
-            </option>
-          ))}
-        </select>
+        <div className="grid gap-3 xl:grid-cols-[minmax(260px,1fr)_170px_170px_170px]">
+          <InvoiceValueHelp
+            lookupValue={invoiceLookupValue}
+            invoices={invoicesQuery.data?.data ?? []}
+            value={filters.invoiceId}
+            onLookupChange={(value) => {
+              setInvoiceLookupValue(value)
+              if (filters.invoiceId) {
+                applyFilters({ invoiceId: '' })
+              }
+            }}
+            onValueChange={(invoiceId) => applyFilters({ invoiceId })}
+          />
+          <select
+            className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
+            value={filters.method || allMethodsValue}
+            onChange={(event) =>
+              applyFilters({
+                method:
+                  event.target.value === allMethodsValue
+                    ? ''
+                    : (event.target.value as PaymentMethod),
+              })
+            }
+            aria-label="Filter by payment method"
+          >
+            <option value={allMethodsValue}>All methods</option>
+            {paymentMethods.map((method) => (
+              <option key={method} value={method}>
+                {method}
+              </option>
+            ))}
+          </select>
+          <input
+            type="date"
+            className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
+            value={filters.fromDate}
+            onChange={(event) => applyFilters({ fromDate: event.target.value })}
+            aria-label="Filter payments from date"
+          />
+          <input
+            type="date"
+            className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
+            value={filters.toDate}
+            onChange={(event) => applyFilters({ toDate: event.target.value })}
+            aria-label="Filter payments to date"
+          />
+        </div>
       </div>
 
-      <div className="overflow-hidden rounded-md border border-slate-200 bg-white">
+      <TableCard>
         {paymentsQuery.isLoading ? (
-          <div className="p-6 text-sm text-slate-600">Loading payments...</div>
+          <TableState>Loading payments...</TableState>
         ) : error ? (
           <ResourceErrorState error={error} />
         ) : payments.length === 0 ? (
-          <div className="p-6 text-sm text-slate-600">
-            No payments match the current filters.
-          </div>
+          <TableState>No payments match the current filters.</TableState>
         ) : (
           <PaymentsTable payments={payments} />
         )}
-      </div>
-
-      <PaginationControls
-        isFetching={paymentsQuery.isFetching}
-        meta={paymentsQuery.data?.meta}
-        page={filters.page}
-        totalLabel="payments"
-        onPageChange={(page) => applyFilters({ page })}
-      />
+        <TablePagination>
+          <PaginationControls
+            isFetching={paymentsQuery.isFetching}
+            meta={paymentsQuery.data?.meta}
+            page={filters.page}
+            totalLabel="payments"
+            onPageChange={(page) => applyFilters({ page })}
+          />
+        </TablePagination>
+      </TableCard>
     </section>
   )
 }
@@ -99,37 +166,154 @@ function toListParams(filters: PaymentFilters): ListPaymentsParams {
   return {
     page: filters.page,
     limit: filters.limit,
+    invoiceId: filters.invoiceId || undefined,
     method: filters.method || undefined,
+    fromDate: toLocalDayIso(filters.fromDate, 'start'),
+    toDate: toLocalDayIso(filters.toDate, 'end'),
   }
+}
+
+function InvoiceValueHelp({
+  lookupValue,
+  invoices,
+  onLookupChange,
+  onValueChange,
+  value,
+}: {
+  lookupValue: string
+  invoices: Invoice[]
+  onLookupChange: (value: string) => void
+  onValueChange: (invoiceId: string) => void
+  value: string
+}) {
+  return (
+    <div className="grid gap-2 sm:grid-cols-[minmax(140px,0.8fr)_minmax(160px,1fr)]">
+      <input
+        value={lookupValue}
+        onChange={(event) => onLookupChange(event.target.value)}
+        className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
+        placeholder="Find invoice code"
+        aria-label="Search invoice value help"
+      />
+      <select
+        className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
+        value={value || allInvoicesValue}
+        onChange={(event) =>
+          onValueChange(
+            event.target.value === allInvoicesValue ? '' : event.target.value,
+          )
+        }
+        aria-label="Filter by invoice"
+      >
+        <option value={allInvoicesValue}>All invoices</option>
+        {invoices.map((invoice) => (
+          <option key={invoice.id} value={invoice.id}>
+            {invoice.invoiceCode}
+          </option>
+        ))}
+      </select>
+    </div>
+  )
 }
 
 function PaymentsTable({ payments }: { payments: Payment[] }) {
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-slate-200 text-sm">
-        <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500">
+    <TableScroll>
+      <table className={`${tableClassName} min-w-[920px]`}>
+        <thead className={tableHeaderClassName}>
           <tr>
-            <th className="px-4 py-3">Paid At</th>
-            <th className="px-4 py-3">Invoice</th>
-            <th className="px-4 py-3 text-right">Amount</th>
-            <th className="px-4 py-3">Method</th>
-            <th className="px-4 py-3">Reference No</th>
-            <th className="px-4 py-3">Created At</th>
+            <th className={tableKeyHeaderCellClassName}>
+              <TableColumnHeader label="Paid At" />
+            </th>
+            <th className={tableHeaderCellClassName}>
+              <TableColumnHeader label="Invoice" />
+            </th>
+            <th className={`${tableHeaderCellClassName} text-right`}>
+              <TableColumnHeader align="right" label="Amount" />
+            </th>
+            <th className={tableHeaderCellClassName}>
+              <TableColumnHeader label="Method" />
+            </th>
+            <th className={tableHeaderCellClassName}>
+              <TableColumnHeader label="Reference No" />
+            </th>
+            <th className={tableHeaderCellClassName}>
+              <TableColumnHeader label="Created At" />
+            </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-200 bg-white">
+        <tbody className={tableBodyClassName}>
           {payments.map((payment) => (
-            <tr key={payment.id}>
-              <td className="whitespace-nowrap px-4 py-3">{formatDate(payment.paidAt)}</td>
-              <td className="whitespace-nowrap px-4 py-3">{payment.invoiceCode ?? payment.invoiceId}</td>
-              <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">{formatMoney(payment.amount)}</td>
-              <td className="whitespace-nowrap px-4 py-3"><PaymentMethodBadge method={payment.method} /></td>
-              <td className="whitespace-nowrap px-4 py-3">{payment.referenceNo || '-'}</td>
-              <td className="whitespace-nowrap px-4 py-3">{formatDate(payment.createdAt)}</td>
+            <tr key={payment.id} className="group hover:bg-slate-50">
+              <td className={`${tableKeyCellClassName} whitespace-nowrap`}>
+                {formatDate(payment.paidAt)}
+              </td>
+              <td className={tableCellClassName}>
+                <TruncatedCellText
+                  maxWidth="max-w-[200px]"
+                  title={formatPaymentInvoice(payment)}
+                >
+                  {formatPaymentInvoice(payment)}
+                </TruncatedCellText>
+              </td>
+              <td className={`${tableCellClassName} whitespace-nowrap text-right tabular-nums`}>
+                {formatMoney(payment.amount)}
+              </td>
+              <td className={`${tableCellClassName} whitespace-nowrap`}>
+                <PaymentMethodBadge method={payment.method} />
+              </td>
+              <td className={tableCellClassName}>
+                <TruncatedCellText
+                  maxWidth="max-w-[220px]"
+                  title={payment.referenceNo ?? undefined}
+                >
+                  {payment.referenceNo || '-'}
+                </TruncatedCellText>
+              </td>
+              <td className={`${tableCellClassName} whitespace-nowrap`}>
+                {formatDate(payment.createdAt)}
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
-    </div>
+    </TableScroll>
   )
+}
+
+function formatPaymentInvoice(payment: Payment) {
+  return payment.invoiceCode ?? payment.invoice?.invoiceCode ?? payment.invoiceId
+}
+
+function toLocalDayIso(value: string, boundary: 'start' | 'end') {
+  if (!value) {
+    return undefined
+  }
+
+  const [year, month, day] = value.split('-').map(Number)
+
+  if (!year || !month || !day) {
+    return undefined
+  }
+
+  const date =
+    boundary === 'start'
+      ? new Date(year, month - 1, day, 0, 0, 0, 0)
+      : new Date(year, month - 1, day, 23, 59, 59, 999)
+
+  return date.toISOString()
+}
+
+function useDebouncedValue(value: string, delayMs: number) {
+  const [debouncedValue, setDebouncedValue] = useState(value)
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setDebouncedValue(value)
+    }, delayMs)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [delayMs, value])
+
+  return debouncedValue
 }

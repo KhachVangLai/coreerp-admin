@@ -17,6 +17,21 @@ import {
   FormField,
   PaginationControls,
   ResourceErrorState,
+  TableCard,
+  TableColumnHeader,
+  TablePagination,
+  TableScroll,
+  TableState,
+  TruncatedCellText,
+  tableActionCellClassName,
+  tableActionHeaderCellClassName,
+  tableBodyClassName,
+  tableCellClassName,
+  tableClassName,
+  tableHeaderCellClassName,
+  tableHeaderClassName,
+  tableKeyCellClassName,
+  tableKeyHeaderCellClassName,
 } from '@/components/master-data/master-data-ui'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -230,15 +245,13 @@ export function CustomersRoute() {
         </form>
       </div>
 
-      <div className="overflow-hidden rounded-md border border-slate-200 bg-white">
+      <TableCard>
         {customersQuery.isLoading ? (
-          <div className="p-6 text-sm text-slate-600">Loading customers...</div>
+          <TableState>Loading customers...</TableState>
         ) : listError ? (
           <ResourceErrorState error={listError} />
         ) : customers.length === 0 ? (
-          <div className="p-6 text-sm text-slate-600">
-            No customers match the current filters.
-          </div>
+          <TableState>No customers match the current filters.</TableState>
         ) : (
           <CustomersTable
             canWrite={canWrite}
@@ -249,15 +262,16 @@ export function CustomersRoute() {
             }}
           />
         )}
-      </div>
-
-      <PaginationControls
-        isFetching={customersQuery.isFetching}
-        meta={customersQuery.data?.meta}
-        page={filters.page}
-        totalLabel="customers"
-        onPageChange={(page) => applyFilters({ page })}
-      />
+        <TablePagination>
+          <PaginationControls
+            isFetching={customersQuery.isFetching}
+            meta={customersQuery.data?.meta}
+            page={filters.page}
+            totalLabel="customers"
+            onPageChange={(page) => applyFilters({ page })}
+          />
+        </TablePagination>
+      </TableCard>
 
       {isCreateOpen ? (
         <CreateCustomerDialog
@@ -317,46 +331,72 @@ function CustomersTable({
   onEdit: (customer: Customer) => void
 }) {
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-slate-200 text-sm">
-        <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500">
+    <TableScroll>
+      <table className={`${tableClassName} min-w-[1040px]`}>
+        <thead className={tableHeaderClassName}>
           <tr>
-            <th className="px-4 py-3">Code</th>
-            <th className="px-4 py-3">Name</th>
-            <th className="px-4 py-3">Phone</th>
-            <th className="px-4 py-3">Email</th>
-            <th className="px-4 py-3">Type</th>
-            <th className="px-4 py-3">Status</th>
-            <th className="px-4 py-3">Created at</th>
-            {canWrite ? <th className="px-4 py-3 text-right">Actions</th> : null}
+            <th className={tableKeyHeaderCellClassName}>
+              <TableColumnHeader
+                label="Code"
+              />
+            </th>
+            <th className={tableHeaderCellClassName}>
+              <TableColumnHeader label="Name" />
+            </th>
+            <th className={tableHeaderCellClassName}>
+              <TableColumnHeader label="Phone" />
+            </th>
+            <th className={tableHeaderCellClassName}>
+              <TableColumnHeader label="Email" />
+            </th>
+            <th className={tableHeaderCellClassName}>
+              <TableColumnHeader label="Type" />
+            </th>
+            <th className={tableHeaderCellClassName}>
+              <TableColumnHeader label="Status" />
+            </th>
+            <th className={tableHeaderCellClassName}>
+              <TableColumnHeader label="Created at" />
+            </th>
+            {canWrite ? (
+              <th className={tableActionHeaderCellClassName}>
+                <TableColumnHeader align="right" label="Actions" />
+              </th>
+            ) : null}
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-200 bg-white">
+        <tbody className={tableBodyClassName}>
           {customers.map((customer) => (
-            <tr key={customer.id} className="hover:bg-slate-50">
-              <td className="whitespace-nowrap px-4 py-3 font-medium text-slate-900">
-                {customer.code}
+            <tr key={customer.id} className="group hover:bg-slate-50">
+              <td className={`${tableKeyCellClassName} font-medium text-slate-900`}>
+                <TruncatedCellText maxWidth="max-w-[140px]" title={customer.code}>
+                  {customer.code}
+                </TruncatedCellText>
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-700">
-                {customer.name}
+              <td className={`${tableCellClassName} text-slate-700`}>
+                <TruncatedCellText maxWidth="max-w-[240px]" title={customer.name}>
+                  {customer.name}
+                </TruncatedCellText>
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-600">
+              <td className={`${tableCellClassName} whitespace-nowrap text-slate-600`}>
                 {customer.phone || '-'}
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-600">
-                {customer.email || '-'}
+              <td className={`${tableCellClassName} text-slate-600`}>
+                <TruncatedCellText maxWidth="max-w-[240px]" title={customer.email ?? undefined}>
+                  {customer.email || '-'}
+                </TruncatedCellText>
               </td>
-              <td className="whitespace-nowrap px-4 py-3">
+              <td className={`${tableCellClassName} whitespace-nowrap`}>
                 <CustomerTypeBadge type={customer.type} />
               </td>
-              <td className="whitespace-nowrap px-4 py-3">
+              <td className={`${tableCellClassName} whitespace-nowrap`}>
                 <EntityStatusBadge status={customer.status} />
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-600">
+              <td className={`${tableCellClassName} whitespace-nowrap text-slate-600`}>
                 {formatDate(customer.createdAt)}
               </td>
               {canWrite ? (
-                <td className="whitespace-nowrap px-4 py-3 text-right">
+                <td className={tableActionCellClassName}>
                   <Button
                     variant="outline"
                     size="sm"
@@ -371,7 +411,7 @@ function CustomersTable({
           ))}
         </tbody>
       </table>
-    </div>
+    </TableScroll>
   )
 }
 

@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 
 import { Button } from '@/components/ui/button'
 import type { BackendError } from '@/lib/api-error'
+import { cn } from '@/lib/utils'
 import type { PaginationMeta } from '@/types/api'
 
 export function FeedbackMessage({ message }: { message: string | null }) {
@@ -38,6 +39,127 @@ export function ResourceErrorState({ error }: { error: BackendError }) {
         </p>
       </div>
     </div>
+  )
+}
+
+type TableCardProps = {
+  children: ReactNode
+  className?: string
+}
+
+export function TableCard({ children, className }: TableCardProps) {
+  return (
+    <div
+      className={cn(
+        'overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm',
+        className,
+      )}
+    >
+      {children}
+    </div>
+  )
+}
+
+type TableScrollProps = {
+  children: ReactNode
+  className?: string
+}
+
+export function TableScroll({ children, className }: TableScrollProps) {
+  return (
+    <div
+      className={cn(
+        'max-h-[calc(100vh-22rem)] min-h-[260px] overflow-auto overscroll-contain',
+        className,
+      )}
+    >
+      {children}
+    </div>
+  )
+}
+
+type TablePaginationProps = {
+  children: ReactNode
+}
+
+export function TablePagination({ children }: TablePaginationProps) {
+  return (
+    <div className="sticky bottom-0 z-20 border-t border-slate-200 bg-white p-4">
+      {children}
+    </div>
+  )
+}
+
+type TableStateProps = {
+  children: ReactNode
+}
+
+export function TableState({ children }: TableStateProps) {
+  return <div className="p-6 text-sm text-slate-600">{children}</div>
+}
+
+export const tableClassName =
+  'w-full divide-y divide-slate-200 text-sm'
+
+export const tableHeaderClassName =
+  'bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500'
+
+export const tableBodyClassName = 'divide-y divide-slate-200 bg-white'
+
+export const tableHeaderCellClassName =
+  'sticky top-0 z-10 whitespace-nowrap bg-slate-50 px-4 py-3 shadow-[0_1px_0_0_rgb(226_232_240)]'
+
+export const tableCellClassName = 'px-4 py-3'
+
+export const tableActionHeaderCellClassName =
+  'sticky right-0 top-0 z-30 whitespace-nowrap bg-slate-50 px-4 py-3 text-right shadow-[-1px_0_0_0_rgb(226_232_240),0_1px_0_0_rgb(226_232_240)]'
+
+export const tableActionCellClassName =
+  'sticky right-0 z-20 whitespace-nowrap bg-white px-4 py-3 text-right shadow-[-1px_0_0_0_rgb(226_232_240)] group-hover:bg-slate-50'
+
+export const tableKeyHeaderCellClassName =
+  'sticky left-0 top-0 z-30 whitespace-nowrap bg-slate-50 px-4 py-3 shadow-[1px_0_0_0_rgb(226_232_240),0_1px_0_0_rgb(226_232_240)]'
+
+export const tableKeyCellClassName =
+  'sticky left-0 z-20 bg-white px-4 py-3 shadow-[1px_0_0_0_rgb(226_232_240)] group-hover:bg-slate-50'
+
+export function TableColumnHeader({
+  align = 'left',
+  label,
+}: {
+  align?: 'left' | 'right'
+  label: string
+}) {
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center gap-1.5',
+        align === 'right' && 'justify-end',
+      )}
+    >
+      <span>{label}</span>
+    </span>
+  )
+}
+
+export function TruncatedCellText({
+  children,
+  className,
+  maxWidth = 'max-w-[220px]',
+  title,
+}: {
+  children: ReactNode
+  className?: string
+  maxWidth?: string
+  title?: string
+}) {
+  return (
+    <span
+      className={cn('block truncate', maxWidth, className)}
+      title={title}
+    >
+      {children}
+    </span>
   )
 }
 
