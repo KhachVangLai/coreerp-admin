@@ -1,79 +1,68 @@
 # CoreERP Admin
 
-CoreERP Admin is a React admin dashboard for demonstrating the CoreERP
-order-to-cash workflow: master data, inventory, sales orders, warehouse
-fulfillment, invoices, payments, audit logs, and a lightweight operational
-dashboard.
+React admin dashboard for the CoreERP order-to-cash MVP. The interface is built
+for internal ERP users who need dense tables, role-aware actions, and fast access
+to operational records.
 
-The app is intentionally table-first and back-office oriented for internal ERP
-admin users. It uses existing CoreERP API endpoints only; it does not implement
-a separate reporting module, e-commerce checkout, legal e-invoice workflow,
-payment gateway platform, microservices UI, or 3PL warehouse platform.
+## Highlights
 
-## Backend Dependency
-
-This frontend depends on the separate `coreerp-api` backend repository.
-
-- Local API base URL: `http://localhost:3000/api/v1`
-- Swagger API reference: `http://localhost:3000/api/docs`
-- Frontend URL: `http://localhost:5173`
-
-The backend must be running locally for login, session refresh, and all business
-pages.
+- Table-first admin UI for master data, inventory, sales orders, invoices,
+  payments, audit logs, and operational dashboard views.
+- Protected routes, role-based sidebar visibility, and role-aware write actions.
+- REST API integration with the separate `coreerp-api` backend.
+- Form validation with React Hook Form and Zod.
+- TanStack Query data loading, caching, and mutation handling.
+- GitHub Actions CI for lint and production build checks.
 
 ## Tech Stack
 
-- React
-- Vite
-- TypeScript
-- TailwindCSS
-- shadcn/ui
+- React, TypeScript, Vite
+- TailwindCSS, shadcn/ui, Lucide React
 - React Router
 - TanStack Query
-- React Hook Form
-- Zod
+- React Hook Form, Zod
 - Axios
 
-## Implemented Pages
+## Pages
 
-- `/login`
-- `/app/dashboard`
-- `/app/users`
-- `/app/customers`
-- `/app/products`
-- `/app/warehouses`
-- `/app/inventory`
-- `/app/sales-orders`
-- `/app/sales-orders/new`
-- `/app/sales-orders/:id`
-- `/app/invoices`
-- `/app/invoices/:id`
-- `/app/payments`
-- `/app/audit-logs`
+| Route | Purpose |
+| --- | --- |
+| `/login` | Tenant login |
+| `/app/dashboard` | Operational overview |
+| `/app/users` | Tenant user management |
+| `/app/customers` | Customer master data |
+| `/app/products` | Product master data |
+| `/app/warehouses` | Warehouse master data |
+| `/app/inventory` | Stock receive and adjustment |
+| `/app/sales-orders` | Sales order list |
+| `/app/sales-orders/new` | Sales order creation |
+| `/app/sales-orders/:id` | Sales order workflow actions |
+| `/app/invoices` | Invoice list |
+| `/app/invoices/:id` | Invoice issue and payment context |
+| `/app/payments` | Payment records |
+| `/app/audit-logs` | Tenant audit trail |
 
-## Role-Based Access Summary
+## Role Access
 
-- `TENANT_ADMIN`: full tenant administration, including users, master data,
-  inventory actions, sales order actions, invoices, payments, and audit logs.
-- `SALES`: customer maintenance and sales order creation/confirmation/cancel.
-  Read access to operational pages where allowed by the backend.
-- `WAREHOUSE`: inventory receive/adjust actions and sales order fulfillment.
-  Read access to stock and sales order context.
-- `FINANCE`: invoice and payment workflows, plus read access to sales order
-  context.
-- `VIEWER`: read-only access to allowed operational pages.
+| Role | Main Access |
+| --- | --- |
+| `TENANT_ADMIN` | Full tenant administration |
+| `SALES` | Customers and sales order workflow |
+| `WAREHOUSE` | Inventory and fulfillment workflow |
+| `FINANCE` | Invoices and payments |
+| `VIEWER` | Read-only operational access |
 
-Sidebar visibility follows these role rules:
+Unauthorized modules are hidden from the sidebar, and direct route access still
+falls back to a restricted state. Backend authorization remains the source of
+truth for protected actions.
 
-- Users: `TENANT_ADMIN` only
-- Audit Logs: `TENANT_ADMIN` only
-- Invoices and Payments: `TENANT_ADMIN`, `FINANCE`, `VIEWER`
-- Sales Orders: all authenticated roles
-- Inventory: all authenticated roles
+## Quick Start
 
-Write actions are hidden in the UI by role and still enforced by the backend.
+Start the `coreerp-api` backend first. The frontend expects:
 
-## Local Setup
+```text
+VITE_API_BASE_URL=http://localhost:3000/api/v1
+```
 
 Install dependencies:
 
@@ -87,8 +76,7 @@ Create a local environment file if needed:
 copy .env.example .env
 ```
 
-Start the backend from the `coreerp-api` repository first, then start the
-frontend:
+Start the dev server:
 
 ```bash
 npm run dev
@@ -104,124 +92,62 @@ On Windows PowerShell, `npm.cmd run dev`, `npm.cmd run lint`, and
 `npm.cmd run build` are reliable alternatives if script execution policy blocks
 the `npm.ps1` wrapper.
 
-## Environment Variables
-
-```text
-VITE_API_BASE_URL=http://localhost:3000/api/v1
-```
-
 ## Demo Accounts
 
-Tenant: `minh-anh-retail`
+All seeded demo accounts use password `123456`.
 
-| Email | Password | Role |
+| Tenant | Email | Role |
 | --- | --- | --- |
-| `admin@minhanh.vn` | `123456` | `TENANT_ADMIN` |
-| `sales@minhanh.vn` | `123456` | `SALES` |
-| `warehouse@minhanh.vn` | `123456` | `WAREHOUSE` |
-| `finance@minhanh.vn` | `123456` | `FINANCE` |
-| `viewer@minhanh.vn` | `123456` | `VIEWER` |
+| `minh-anh-retail` | `admin@minhanh.vn` | `TENANT_ADMIN` |
+| `minh-anh-retail` | `sales@minhanh.vn` | `SALES` |
+| `minh-anh-retail` | `warehouse@minhanh.vn` | `WAREHOUSE` |
+| `minh-anh-retail` | `finance@minhanh.vn` | `FINANCE` |
+| `minh-anh-retail` | `viewer@minhanh.vn` | `VIEWER` |
+| `hoang-long-fashion` | `admin@hoanglong.vn` | `TENANT_ADMIN` |
+| `hoang-long-fashion` | `sales@hoanglong.vn` | `SALES` |
+| `hoang-long-fashion` | `warehouse@hoanglong.vn` | `WAREHOUSE` |
+| `hoang-long-fashion` | `finance@hoanglong.vn` | `FINANCE` |
+| `hoang-long-fashion` | `viewer@hoanglong.vn` | `VIEWER` |
 
-Tenant: `hoang-long-fashion`
+## Demo Flow
 
-| Email | Password | Role |
-| --- | --- | --- |
-| `admin@hoanglong.vn` | `123456` | `TENANT_ADMIN` |
-| `sales@hoanglong.vn` | `123456` | `SALES` |
-| `warehouse@hoanglong.vn` | `123456` | `WAREHOUSE` |
-| `finance@hoanglong.vn` | `123456` | `FINANCE` |
-| `viewer@hoanglong.vn` | `123456` | `VIEWER` |
+1. Log in as `admin@minhanh.vn` with tenant `minh-anh-retail`.
+2. Review or create customer, product, and warehouse master data.
+3. Receive stock into a warehouse.
+4. Create and confirm a sales order.
+5. Fulfill the order from inventory.
+6. Generate and issue the invoice.
+7. Record partial and full payments.
+8. Review the audit log and dashboard.
 
-## Demo Walkthrough
-
-1. Start the `coreerp-api` backend.
-2. Start this frontend with `npm run dev`.
-3. Log in as `admin@minhanh.vn` using tenant `minh-anh-retail`.
-4. Create or review a customer, product, and warehouse.
-5. Receive stock for the product into the warehouse.
-6. Create a sales order.
-7. Confirm the sales order to reserve stock.
-8. Fulfill the sales order to issue stock out.
-9. Generate an invoice from the fulfilled sales order.
-10. Issue the invoice.
-11. Record a partial payment.
-12. Record a full payment.
-13. Check Audit Logs for the tenant activity trail.
-14. View Dashboard for a lightweight operational overview.
-
-Swagger remains the authoritative API reference during the walkthrough:
+Swagger remains the backend API reference during demos:
 `http://localhost:3000/api/docs`.
 
-Payments in this MVP are manual finance-user payment records. The UI supports
-recording partial and full payments through the backend, but does not implement
-online payment gateways, payment links, provider webhooks, refunds, or payment
-reconciliation.
-
-Invoices in this MVP are invoice data records with issue workflow, line
-snapshots, and payment tracking. The UI does not implement printable invoice
-views, PDF export, legal e-invoice integration, digital signatures, or invoice
-email sending.
-
-## Testing And Build Commands
+## Verification
 
 ```bash
 npm run lint
 npm run build
 ```
 
-GitHub Actions runs the same lint and build checks on pushes and pull requests
-to `main`.
+No frontend automated test suite is currently included.
 
-No frontend automated test suite is currently present.
+## Documentation
 
-## Design System
+- [Design System](docs/design-system.md)
 
-See [docs/design-system.md](docs/design-system.md) for UI direction, page
-patterns, status badge rules, and workflow UI rules.
+## Scope
 
-## Known Limitations
+This frontend uses existing CoreERP API endpoints only. It does not implement a
+separate reporting module, online payment gateway, legal e-invoice workflow,
+PDF export, microservices UI, or 3PL warehouse platform.
 
-- No production deployment is configured yet.
-- No frontend automated tests are present yet.
-- No advanced reporting charts are implemented.
-- No Redis, Kafka, Redpanda, or Outbox workflows are exposed by the MVP.
-- No online payment gateway, payment links, provider webhooks, refunds, or
-  reconciliation are implemented.
-- No printable invoice view, invoice PDF export, legal e-invoice integration,
-  digital signature, or invoice email sending is implemented.
-- No dark mode is implemented.
-- No refresh token or logout API is implemented; logout clears the local access
-  token in the frontend.
+Current limitations:
+
 - The backend must be running locally for authenticated pages.
-- Dashboard counts and snapshots use existing list APIs, not dedicated report
-  endpoints.
-- The Vite production build may warn about large chunks; route-level lazy
-  loading can be added later if bundle size becomes a priority.
-- Screenshots can be added later; no repository screenshots are included now.
-
-## Technical Debt
-
-- Vite chunk-size warning / route lazy loading.
-- Frontend automated tests are not implemented yet.
-- CI currently covers frontend lint and build only.
-- Deployment is not implemented yet.
-
-## Future Improvements
-
-- Add printable invoice view / PDF export if needed for MVP+ demos.
-- Add frontend tests to CI when a test suite is introduced.
-- Add frontend E2E tests with Playwright for auth, role gating, and workflow
-  actions.
-- Add route-level lazy loading and bundle analysis.
-- Add reports/read models for revenue, unpaid invoices, and low stock if
-  analytics become a product requirement.
-- Add platform tenant onboarding.
-- Add deployment guide and production environment examples.
-- Optionally add a payment gateway adapter and webhook simulation only if a
-  customer-facing payment flow is added.
-- Optionally add an e-invoice provider abstraction only if legal invoice
-  integration is needed.
-- Optionally add Outbox/Kafka/Redpanda only if async integration or a service
-  split becomes necessary.
-- Optionally add Redis/Valkey only for non-critical caching or rate limiting
-  after measured need.
+- No production deployment is configured.
+- No frontend automated tests are present.
+- Dashboard metrics use existing list APIs, not dedicated reporting endpoints.
+- Logout clears the local access token; no refresh-token/logout API flow is
+  implemented in the MVP.
+- Dark mode and repository screenshots are not included.
